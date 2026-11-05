@@ -39,6 +39,8 @@ import { ENGINE_VERSION, evaluateScenarios } from "@/lib/scenarios";
 import { ClimateChart } from "./climate-chart";
 import { FarmFields, SoilFields } from "./farm-fields";
 import { ScenarioPanel } from "./scenario-panel";
+import { useSoilContext } from "./use-soil-context";
+import { SoilContextPanel } from "./soil-context-panel";
 
 const FarmMap = dynamic(() => import("./farm-map"), {
   ssr: false,
@@ -124,7 +126,9 @@ export function Workspace({
   const geoId = useRef(0);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const validFarm = isFarmInput(farm);
-  const result = validFarm ? evaluateScenarios(farm, horizon, context) : null;
+  const soilContext = useSoilContext(point, draftReady);
+  const result = validFarm ? evaluateScenarios(farm, horizon, context, soilContext.soil) : null;
+  const soilPanel = <SoilContextPanel {...soilContext} farm={farm} onRetry={soilContext.retry} />;
 
   useEffect(() => {
     try {
@@ -391,9 +395,10 @@ export function Workspace({
       horizon,
       selected,
       climate: context,
+      soil: soilContext.soil,
       result,
       evidence: EVIDENCE,
-      note: "Escenarios cualitativos para explorar manejo; requieren revisión local antes de intervenir. Los datos de suelo y manejo fueron ingresados por el usuario.",
+      note: "Escenarios cualitativos que requieren revisión local. Farm contiene datos ingresados; soil contiene estimaciones SoilGrids del punto, con profundidad, incertidumbre y fuentes. No se convierte carbono a materia orgánica ni se calculan dosis de cal.",
     };
     const url = URL.createObjectURL(
       new Blob([JSON.stringify(file, null, 2)], { type: "application/json" }),
@@ -522,221 +527,224 @@ export function Workspace({
             </div>
           </div>
           {step === 0 ? (
-            <div className="wizard-grid location-step">
-              <section className="panel location-panel" id="ubicacion">
-                <div className="section-heading">
-                  <div>
-                    <span className="eyebrow">01 / BUSQUEMOS EL LUGAR</span>
-                    <h2>Busca tu finca en el mapa</h2>
-                  </div>
-                  <span className="step-icon">
-                    <MapPin size={19} />
-                  </span>
-                </div>
-                <FarmMap point={point} accuracy={accuracy} onChange={selectPoint} />
-                <div className="location-controls">
-                  <button
-                    className="secondary-button geo-button"
-                    onClick={locate}
-                    disabled={locating}
-                  >
-                    {locating ? (
-                      <LoaderCircle size={16} className="spin" />
-                    ) : (
-                      <Crosshair size={16} />
-                    )}
-                    {locating ? "Buscando ubicación…" : "Estoy en la finca: usar mi ubicación"}
-                  </button>
-                  <p className="field-help">
-                    Si estás en la finca, usa la ubicación del dispositivo. También puedes marcarla
-                    manualmente.
-                  </p>
-                  <details className="precise-values coordinate-details">
-                    <summary>Ubicar con coordenadas (opcional)</summary>
-                    <div className="coordinate-row">
-                      <div>
-                        <label htmlFor="latitude">Latitud</label>
-                        <input
-                          id="latitude"
-                          inputMode="decimal"
-                          value={latText}
-                          onChange={(e) => setLatText(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="longitude">Longitud</label>
-                        <input
-                          id="longitude"
-                          inputMode="decimal"
-                          value={lonText}
-                          onChange={(e) => setLonText(e.target.value)}
-                        />
-                      </div>
-                      <button
-                        className="coordinate-button"
-                        disabled={!coordinateChanged}
-                        onClick={applyCoordinates}
-                        aria-label="Aplicar coordenadas"
-                        title="Aplicar coordenadas"
-                      >
-                        <ArrowRight size={18} />
-                      </button>
+            <>
+              <div className="wizard-grid location-step">
+                <section className="panel location-panel" id="ubicacion">
+                  <div className="section-heading">
+                    <div>
+                      <span className="eyebrow">01 / BUSQUEMOS EL LUGAR</span>
+                      <h2>Busca tu finca en el mapa</h2>
                     </div>
-                    {coordinateChanged ? (
-                      <p className="inline-warning">
-                        Pulsa la flecha para aplicar las coordenadas editadas.
-                      </p>
-                    ) : null}
-                    {accuracy !== null ? (
-                      <p className="field-help">
-                        Precisión aproximada del dispositivo: {accuracy} m. Confirma el punto en el
-                        mapa.
-                      </p>
-                    ) : null}
-                  </details>
-                  <div className="query-row">
-                    <select
-                      value={year}
-                      aria-label="Año del contexto climático"
-                      onChange={(e) => {
-                        invalidate();
-                        setYear(Number(e.target.value));
-                      }}
-                    >
-                      <option value="2025">Año 2025</option>
-                      <option value="2024">Año 2024</option>
-                      <option value="2023">Año 2023</option>
-                    </select>
+                    <span className="step-icon">
+                      <MapPin size={19} />
+                    </span>
+                  </div>
+                  <FarmMap point={point} accuracy={accuracy} onChange={selectPoint} />
+                  <div className="location-controls">
                     <button
-                      className="primary-button"
-                      onClick={queryClimate}
-                      disabled={loading || coordinateChanged}
+                      className="secondary-button geo-button"
+                      onClick={locate}
+                      disabled={locating}
                     >
-                      {loading ? (
-                        <LoaderCircle size={15} className="spin" />
+                      {locating ? (
+                        <LoaderCircle size={16} className="spin" />
                       ) : (
-                        <Satellite size={16} />
+                        <Crosshair size={16} />
                       )}
-                      {loading ? "Buscando datos…" : "Conocer el clima"}
+                      {locating ? "Buscando ubicación…" : "Estoy en la finca: usar mi ubicación"}
                     </button>
-                  </div>
-                  {error ? (
-                    <div className="inline-error" role="alert">
-                      {error}
-                      <button className="text-button" onClick={loadDemo}>
-                        Abrir caso ilustrativo <ArrowRight size={13} />
+                    <p className="field-help">
+                      Si estás en la finca, usa la ubicación del dispositivo. También puedes
+                      marcarla manualmente.
+                    </p>
+                    <details className="precise-values coordinate-details">
+                      <summary>Ubicar con coordenadas (opcional)</summary>
+                      <div className="coordinate-row">
+                        <div>
+                          <label htmlFor="latitude">Latitud</label>
+                          <input
+                            id="latitude"
+                            inputMode="decimal"
+                            value={latText}
+                            onChange={(e) => setLatText(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="longitude">Longitud</label>
+                          <input
+                            id="longitude"
+                            inputMode="decimal"
+                            value={lonText}
+                            onChange={(e) => setLonText(e.target.value)}
+                          />
+                        </div>
+                        <button
+                          className="coordinate-button"
+                          disabled={!coordinateChanged}
+                          onClick={applyCoordinates}
+                          aria-label="Aplicar coordenadas"
+                          title="Aplicar coordenadas"
+                        >
+                          <ArrowRight size={18} />
+                        </button>
+                      </div>
+                      {coordinateChanged ? (
+                        <p className="inline-warning">
+                          Pulsa la flecha para aplicar las coordenadas editadas.
+                        </p>
+                      ) : null}
+                      {accuracy !== null ? (
+                        <p className="field-help">
+                          Precisión aproximada del dispositivo: {accuracy} m. Confirma el punto en
+                          el mapa.
+                        </p>
+                      ) : null}
+                    </details>
+                    <div className="query-row">
+                      <select
+                        value={year}
+                        aria-label="Año del contexto climático"
+                        onChange={(e) => {
+                          invalidate();
+                          setYear(Number(e.target.value));
+                        }}
+                      >
+                        <option value="2025">Año 2025</option>
+                        <option value="2024">Año 2024</option>
+                        <option value="2023">Año 2023</option>
+                      </select>
+                      <button
+                        className="primary-button"
+                        onClick={queryClimate}
+                        disabled={loading || coordinateChanged}
+                      >
+                        {loading ? (
+                          <LoaderCircle size={15} className="spin" />
+                        ) : (
+                          <Satellite size={16} />
+                        )}
+                        {loading ? "Buscando datos…" : "Conocer el clima"}
                       </button>
                     </div>
-                  ) : null}
-                </div>
-              </section>
+                    {error ? (
+                      <div className="inline-error" role="alert">
+                        {error}
+                        <button className="text-button" onClick={loadDemo}>
+                          Abrir caso ilustrativo <ArrowRight size={13} />
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                </section>
 
-              <section className="panel climate-panel" aria-busy={loading}>
-                <div className="section-heading">
-                  <div>
-                    <span className="eyebrow">EL CLIMA DE LA ZONA</span>
-                    <h2>Conozcamos el clima</h2>
+                <section className="panel climate-panel" aria-busy={loading}>
+                  <div className="section-heading">
+                    <div>
+                      <span className="eyebrow">EL CLIMA DE LA ZONA</span>
+                      <h2>Conozcamos el clima</h2>
+                    </div>
+                    <span className="data-badge">
+                      <Satellite size={12} /> NASA POWER
+                    </span>
                   </div>
-                  <span className="data-badge">
-                    <Satellite size={12} /> NASA POWER
-                  </span>
-                </div>
-                {context ? (
-                  <>
-                    <ClimateChart
-                      key={`${context.coordinates.lat}:${context.coordinates.lon}:${context.year}:${context.retrievedAt}`}
-                      context={context}
-                    />
-                    <details className="provenance">
-                      <summary>
-                        <span className="provenance-dot" />
-                        {context.mode === "snapshot"
-                          ? "Datos de un ejemplo en San Miguel"
-                          : "Datos consultados para el lugar elegido"}
-                        <span>
-                          Ver de dónde vienen los datos <ArrowDown size={12} />
-                        </span>
-                      </summary>
-                      <dl>
-                        <div>
-                          <dt>Coordenada consultada</dt>
-                          <dd>
-                            {context.coordinates.lat}, {context.coordinates.lon}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt>Periodo</dt>
-                          <dd>01 ene – 31 dic {context.year}</dd>
-                        </div>
-                        <div>
-                          <dt>Resolución</dt>
-                          <dd>{context.resolution}</dd>
-                        </div>
-                        <div>
-                          <dt>Fuente y versión</dt>
-                          <dd>
-                            {context.sources.join(" · ")} · API {context.apiVersion}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt>Registro de consulta</dt>
-                          <dd>
-                            {new Intl.DateTimeFormat("es-CO", {
-                              timeZone: "America/Bogota",
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                            }).format(new Date(context.retrievedAt))}{" "}
-                            (Colombia) · estándar de datos {context.timeStandard}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt>Cobertura temporal</dt>
-                          <dd>
-                            Lluvia {context.coverage.rain}/{context.coverage.expected}; temperatura{" "}
-                            {context.coverage.temperature}/{context.coverage.expected}; humedad{" "}
-                            {context.coverage.humidity}/{context.coverage.expected} días
-                          </dd>
-                        </div>
-                      </dl>
-                      <a
-                        className="text-button"
-                        href={context.sourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Abrir respuesta de NASA <ExternalLink size={12} />
-                      </a>
-                    </details>
-                  </>
-                ) : (
-                  <div className="empty-climate">
-                    <CloudRain size={38} />
-                    <h3>
-                      {loading
-                        ? "Consultando el contexto regional"
-                        : "Un nuevo punto, nuevos datos"}
-                    </h3>
-                    <p>
-                      {loading
-                        ? "Estamos solicitando la serie anual a NASA POWER. Puedes seguir describiendo tu parcela."
-                        : "Confirma tu ubicación y pulsa Conocer el clima para cargar el clima de este punto."}
-                    </p>
-                    {loading ? (
-                      <span className="loading-line" />
-                    ) : (
-                      <button
-                        className="text-button"
-                        onClick={queryClimate}
-                        disabled={coordinateChanged}
-                      >
-                        Consultar esta ubicación <ArrowRight size={14} />
-                      </button>
-                    )}
-                  </div>
-                )}
-              </section>
-            </div>
+                  {context ? (
+                    <>
+                      <ClimateChart
+                        key={`${context.coordinates.lat}:${context.coordinates.lon}:${context.year}:${context.retrievedAt}`}
+                        context={context}
+                      />
+                      <details className="provenance">
+                        <summary>
+                          <span className="provenance-dot" />
+                          {context.mode === "snapshot"
+                            ? "Datos de un ejemplo en San Miguel"
+                            : "Datos consultados para el lugar elegido"}
+                          <span>
+                            Ver de dónde vienen los datos <ArrowDown size={12} />
+                          </span>
+                        </summary>
+                        <dl>
+                          <div>
+                            <dt>Coordenada consultada</dt>
+                            <dd>
+                              {context.coordinates.lat}, {context.coordinates.lon}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>Periodo</dt>
+                            <dd>01 ene – 31 dic {context.year}</dd>
+                          </div>
+                          <div>
+                            <dt>Resolución</dt>
+                            <dd>{context.resolution}</dd>
+                          </div>
+                          <div>
+                            <dt>Fuente y versión</dt>
+                            <dd>
+                              {context.sources.join(" · ")} · API {context.apiVersion}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>Registro de consulta</dt>
+                            <dd>
+                              {new Intl.DateTimeFormat("es-CO", {
+                                timeZone: "America/Bogota",
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              }).format(new Date(context.retrievedAt))}{" "}
+                              (Colombia) · estándar de datos {context.timeStandard}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>Cobertura temporal</dt>
+                            <dd>
+                              Lluvia {context.coverage.rain}/{context.coverage.expected};
+                              temperatura {context.coverage.temperature}/{context.coverage.expected}
+                              ; humedad {context.coverage.humidity}/{context.coverage.expected} días
+                            </dd>
+                          </div>
+                        </dl>
+                        <a
+                          className="text-button"
+                          href={context.sourceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Abrir respuesta de NASA <ExternalLink size={12} />
+                        </a>
+                      </details>
+                    </>
+                  ) : (
+                    <div className="empty-climate">
+                      <CloudRain size={38} />
+                      <h3>
+                        {loading
+                          ? "Consultando el contexto regional"
+                          : "Un nuevo punto, nuevos datos"}
+                      </h3>
+                      <p>
+                        {loading
+                          ? "Estamos solicitando la serie anual a NASA POWER. Puedes seguir describiendo tu parcela."
+                          : "Confirma tu ubicación y pulsa Conocer el clima para cargar el clima de este punto."}
+                      </p>
+                      {loading ? (
+                        <span className="loading-line" />
+                      ) : (
+                        <button
+                          className="text-button"
+                          onClick={queryClimate}
+                          disabled={coordinateChanged}
+                        >
+                          Consultar esta ubicación <ArrowRight size={14} />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </section>
+              </div>
+              {soilPanel}
+            </>
           ) : null}
           {step === 1 ? (
             <div className="wizard-grid farm-step">
@@ -773,23 +781,27 @@ export function Workspace({
             </div>
           ) : null}
           {step === 2 ? (
-            <div className="wizard-grid soil-step">
-              <SoilFields
-                farm={farm}
-                onChange={setFarm}
-                onEvidence={() => openEvidence("soilgrids")}
-              />
-              <ManagementControls
-                farm={farm}
-                horizon={horizon}
-                onChange={setFarm}
-                onHorizon={setHorizon}
-                onEvidence={() => openEvidence("inga")}
-              />
-            </div>
+            <>
+              {soilPanel}
+              <div className="wizard-grid soil-step">
+                <SoilFields
+                  farm={farm}
+                  onChange={setFarm}
+                  onEvidence={() => openEvidence("soilgrids")}
+                />
+                <ManagementControls
+                  farm={farm}
+                  horizon={horizon}
+                  onChange={setFarm}
+                  onHorizon={setHorizon}
+                  onEvidence={() => openEvidence("inga")}
+                />
+              </div>
+            </>
           ) : null}
           {step === 3 ? (
             <>
+              {soilPanel}
               <div className="result-edit-links">
                 <span>¿Quieres probar algo diferente?</span>
                 <Link href="/ubicacion">Cambiar lugar</Link>

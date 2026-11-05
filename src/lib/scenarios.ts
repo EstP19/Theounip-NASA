@@ -5,16 +5,19 @@ import type {
   PlanAction,
   Scenario,
   ScenarioResult,
+  SoilContext,
   Stage,
 } from "./types.ts";
 import { SPECIES } from "./evidence.ts";
+import { soilBasis } from "./soil-basis.ts";
 
-export const ENGINE_VERSION = "0.1.0";
+export const ENGINE_VERSION = "0.2.0";
 
 export function evaluateScenarios(
   farm: FarmInput,
   horizon: Horizon,
   climate: ClimateContext | null = null,
+  soil: SoilContext | null = null,
 ): ScenarioResult {
   if (farm.state === "forest")
     return {
@@ -26,12 +29,19 @@ export function evaluateScenarios(
       scenarios: [],
     };
   const missing: string[] = [];
+  const basis = soilBasis(farm, soil);
   const shadeKnown = farm.shadeKnown !== false;
   const coverKnown = farm.coverKnown !== false;
   const warnings = [
     "Este plan te ayuda a elegir qué hacer y qué observar con el tiempo. No dice exactamente cómo estará el suelo ni cuánto cacao producirás.",
   ];
-  if (farm.ph === null) missing.push("pH del suelo");
+  if (basis.ph === null) missing.push("pH del suelo");
+  else if (basis.phSource === "soilgrids")
+    missing.push("Confirmar el pH con una muestra de la finca");
+  if (soil?.ph || soil?.organicCarbon)
+    warnings.push(
+      "SoilGrids orienta el plan con estimaciones del suelo a 5–15 cm y unos 250 m de resolución. Confirma los valores con una muestra antes de aplicar enmiendas; el mapa no muestra cambios futuros.",
+    );
   if (!shadeKnown) missing.push("Conocer un poco mejor la sombra del cultivo");
   if (!coverKnown) missing.push("Observar qué tanto está cubierto el suelo");
   if (farm.organicMatter === null) missing.push("Materia orgánica del suelo");
@@ -57,13 +67,17 @@ export function evaluateScenarios(
     );
   const soilAction: PlanAction = {
     title:
-      farm.ph === null || farm.soilOrigin !== "lab"
-        ? "Completar el análisis de suelo"
-        : "Revisar el análisis con un técnico",
+      basis.phSource === "soilgrids"
+        ? "Comprobar la acidez en tu finca"
+        : basis.ph === null || farm.soilOrigin !== "lab"
+          ? "Completar el análisis de suelo"
+          : "Revisar el análisis con un técnico",
     reason:
-      farm.ph === null
-        ? "Un análisis ayuda a conocer el suelo. Si todavía no lo tienes, puedes empezar por pedir orientación antes de aplicar cal o fertilizantes."
-        : `pH ingresado: ${farm.ph}. La necesidad y dosis de dolomita dependen también de acidez intercambiable, textura y otros resultados.`,
+      basis.phSource === "soilgrids"
+        ? `SoilGrids estima un pH de ${basis.ph} a ${soil!.depth}. Úsalo para conversar sobre la acidez del suelo y planear un muestreo. No permite decidir una dosis de cal: hacen falta acidez intercambiable, textura y un análisis local.`
+        : basis.ph === null
+          ? "Un análisis ayuda a conocer el suelo. Si todavía no lo tienes, puedes empezar por pedir orientación antes de aplicar cal o fertilizantes."
+          : `pH ingresado: ${basis.ph}. ${soil?.ph ? "Damos prioridad a tu dato frente a la estimación del mapa. " : ""}La necesidad y dosis de dolomita dependen también de acidez intercambiable, textura y otros resultados.`,
     evidence: "ant",
     pending: true,
   };
@@ -108,7 +122,9 @@ export function evaluateScenarios(
     title: "Observar los cambios en el suelo",
     reason:
       farm.organicMatter === null
-        ? "Falta una medición de materia orgánica. Registrar la línea base antes de evaluar cambios por coberturas o manejo de residuos."
+        ? basis.organicCarbon !== null
+          ? `SoilGrids estima ${basis.organicCarbon} g/kg de carbono orgánico a ${soil!.depth}. Es una referencia para planear el muestreo y seguir el cuidado de hojas y coberturas. No equivale a materia orgánica medida ni permite atribuir mejoras a una planta; falta una muestra local para comparar cambios.`
+          : "Falta una medición de materia orgánica. Registrar la línea base antes de evaluar cambios por coberturas o manejo de residuos."
         : `Materia orgánica ingresada: ${farm.organicMatter}%. Conservar el método y la profundidad para comparar futuros muestreos. Este valor no predice la respuesta a una cobertura.`,
     evidence: "wcs",
     pending: farm.organicMatter === null,

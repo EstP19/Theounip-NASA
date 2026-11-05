@@ -1,4 +1,17 @@
 export type Coordinates = { lat: number; lon: number };
+export type SoilEstimate = { mean: number; lower: number | null; upper: number | null };
+export type SoilContext = {
+  coordinates: Coordinates;
+  source: "SoilGrids 2.0 · ISRIC";
+  sourceUrl: string;
+  sourceUrls: string[];
+  retrievedAt: string;
+  depth: "5–15 cm";
+  resolution: "250 m";
+  ph: SoilEstimate | null;
+  organicCarbon: SoilEstimate | null;
+  warnings: string[];
+};
 export type PlotState = "young" | "renewal" | "pasture" | "forest";
 export type Drainage = "unknown" | "good" | "waterlogged";
 export type Priority = "soil" | "water" | "renovation";

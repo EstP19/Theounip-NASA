@@ -38,8 +38,8 @@ export const EVIDENCE: Evidence[] = [
     title: "Propiedades y acceso a SoilGrids",
     organization: "ISRIC World Soil Information",
     detail:
-      "Estimaciones cartográficas por profundidad. El carbono orgánico es distinto de la materia orgánica. Este prototipo deja el suelo como dato ingresado y no inventa valores faltantes.",
-    url: "https://docs.isric.org/globaldata/soilgrids/SoilGrids_faqs_02.html",
+      "Estimaciones a 250 m de pH y carbono orgánico para 5–15 cm, consultadas mediante WCS numérico. Se muestran promedio y percentiles 5 y 95 cuando existen. El carbono no se convierte a materia orgánica y el análisis local tiene prioridad. CC BY 4.0.",
+    url: "https://docs.isric.org/globaldata/soilgrids/",
   },
   {
     id: "power",

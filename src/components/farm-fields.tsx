@@ -241,8 +241,8 @@ export function SoilFields({ farm, onChange, onEvidence }: Props & { onEvidence:
           </span>
           <h3>No necesitas tenerlo todo para empezar.</h3>
           <p>
-            Prepararemos una guía con lo que ya nos contaste. Uno de los primeros pasos será conocer
-            mejor el suelo.
+            Usaremos lo que ya nos contaste y las estimaciones del mapa cuando estén disponibles.
+            Una muestra de tu finca te ayudará a conocer mejor el suelo.
           </p>
         </div>
       ) : (

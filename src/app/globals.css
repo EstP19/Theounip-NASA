@@ -3711,3 +3711,52 @@ label.field-label {
     order: 0 !important;
   }
 }
+.soil-context-panel {
+  margin-bottom: 24px;
+}
+.soil-estimates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.soil-estimate {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 14px;
+  background: var(--surface-soft, #f3f6ee);
+  min-width: 0;
+}
+.soil-estimate strong {
+  font-size: 1.65rem;
+  color: #194d38;
+}
+.soil-estimate small {
+  line-height: 1.6;
+}
+.soil-use-note {
+  padding: 14px 16px;
+  border-left: 3px solid #8fa675;
+  background: #f3f6ee;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+.soil-loading {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 16px 0;
+}
+.soil-context-panel .precise-values {
+  margin-top: 18px;
+}
+.soil-context-panel .text-button {
+  min-height: 44px;
+}
+@media (max-width: 480px) {
+  .soil-estimates {
+    grid-template-columns: 1fr;
+  }
+}
