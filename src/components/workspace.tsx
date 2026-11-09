@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ManagementControls } from "./management-controls";
@@ -23,7 +24,6 @@ import {
   RotateCcw,
   Satellite,
   Save,
-  Sprout,
   X,
 } from "lucide-react";
 import type { ClimateContext, Coordinates, EvidenceId, FarmInput, Horizon } from "@/lib/types";
@@ -42,6 +42,8 @@ import { ScenarioPanel } from "./scenario-panel";
 import { useSoilContext } from "./use-soil-context";
 import { SoilContextPanel } from "./soil-context-panel";
 import { CacaoCare, SoilGuide } from "./cacao-care";
+import universityMark from "@/app/icon.jpeg";
+import universityLogo from "@/assets/uniputumayo-logo.jpeg";
 
 const FarmMap = dynamic(() => import("./farm-map"), {
   ssr: false,
@@ -444,7 +446,14 @@ export function Workspace({
       </a>
       <aside className="side-rail" aria-label="Pasos del plan">
         <Link className="rail-brand" href="/ubicacion" aria-label="Inicio SueloVivo">
-          <Sprout size={26} />
+          <Image
+            src={universityMark}
+            alt=""
+            width={40}
+            height={40}
+            className="brand-mark"
+            unoptimized
+          />
         </Link>
         <nav>
           {STEPS.map((item, i) => (
@@ -503,9 +512,19 @@ export function Workspace({
               </h1>
               <p>{STEPS[step].description}</p>
             </div>
-            <span className="wizard-nature" aria-hidden="true">
-              <Sprout size={38} />
-            </span>
+            <picture className="wizard-nature">
+              <source
+                media="(max-width: 760px)"
+                srcSet={universityMark.src}
+                width={universityMark.width}
+                height={universityMark.height}
+              />
+              <Image
+                src={universityLogo}
+                alt="Institución Universitaria del Putumayo"
+                unoptimized
+              />
+            </picture>
           </section>
           <div className="workspace-toolbar">
             <div className="toolbar-location">
@@ -895,7 +914,15 @@ export function Workspace({
           {children}
           <footer className="footer">
             <span className="footer-brand">
-              <Sprout size={17} /> SueloVivo <span>por Theounip</span>
+              <Image
+                src={universityMark}
+                alt=""
+                width={24}
+                height={24}
+                className="brand-mark"
+                unoptimized
+              />
+              SueloVivo <span>por Theounip</span>
             </span>
             <span>Hecho para acompañar a quienes cultivan cacao en Putumayo.</span>
             {step === LAST_STEP ? (
