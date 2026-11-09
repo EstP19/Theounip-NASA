@@ -33,6 +33,7 @@ export type FarmInput = {
   soilDate: string;
   soilOrigin: "none" | "declared" | "lab";
   symptoms: "unknown" | "no" | "yes";
+  fruiting?: "unknown" | "no" | "yes";
   species: Species[];
 };
 
@@ -62,13 +63,25 @@ export type ClimateContext = {
   coverage: { rain: number; temperature: number; humidity: number; expected: number };
 };
 
-export type EvidenceId = "wcs" | "ica" | "inga" | "ant" | "soilgrids" | "power";
+export type EvidenceId =
+  | "wcs"
+  | "ica"
+  | "inga"
+  | "ant"
+  | "soilgrids"
+  | "power"
+  | "icco"
+  | "fedecacao-poda"
+  | "inia-suelos"
+  | "cosecha"
+  | "trazabilidad";
 export type Evidence = {
   id: EvidenceId;
   title: string;
   organization: string;
   detail: string;
   url: string;
+  section?: string;
 };
 export type PlanAction = { title: string; reason: string; evidence: EvidenceId; pending?: boolean };
 export type Stage = { year: number; label: string; actions: string[] };

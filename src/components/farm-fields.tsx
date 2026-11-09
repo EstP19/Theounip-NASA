@@ -181,18 +181,6 @@ export function FarmFields({ farm, onChange }: Props) {
         <option value="water">El manejo del agua</option>
         <option value="renovation">Renovar mi cultivo</option>
       </select>
-      <label className="field-label" htmlFor="symptoms">
-        ¿Has visto frutos con manchas o daños?
-      </label>
-      <select
-        id="symptoms"
-        value={farm.symptoms}
-        onChange={(e) => update("symptoms", e.target.value as FarmInput["symptoms"])}
-      >
-        <option value="unknown">No lo he revisado</option>
-        <option value="no">No he observado</option>
-        <option value="yes">Sí, he visto algunos</option>
-      </select>
       <p className="field-help">
         Tus respuestas son aproximadas. Podrás cambiarlas cuando conozcas mejor el cultivo.
       </p>

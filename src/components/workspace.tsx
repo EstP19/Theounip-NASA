@@ -41,6 +41,7 @@ import { FarmFields, SoilFields } from "./farm-fields";
 import { ScenarioPanel } from "./scenario-panel";
 import { useSoilContext } from "./use-soil-context";
 import { SoilContextPanel } from "./soil-context-panel";
+import { CacaoCare, SoilGuide } from "./cacao-care";
 
 const FarmMap = dynamic(() => import("./farm-map"), {
   ssr: false,
@@ -77,12 +78,20 @@ const STEPS = [
     description: "Agrega lo que sepas del suelo y elige qué te gustaría explorar.",
   },
   {
+    path: "/cuidados",
+    label: "Cuidados",
+    title: "Cuidemos tu cacao",
+    description:
+      "Cuenta lo que has observado y consulta las guías para la próxima visita o cosecha.",
+  },
+  {
     path: "/resultados",
     label: "Tu plan",
     title: "Un plan para seguir creciendo",
     description: "Explora tus opciones y revisa qué podrías hacer primero.",
   },
 ];
+const LAST_STEP = STEPS.length - 1;
 
 export function Workspace({
   initialContext,
@@ -425,7 +434,7 @@ export function Workspace({
       );
       return;
     }
-    router.push(STEPS[Math.min(step + 1, 3)].path);
+    router.push(STEPS[Math.min(step + 1, LAST_STEP)].path);
   }
 
   return (
@@ -486,7 +495,9 @@ export function Workspace({
           </nav>
           <section className="wizard-heading">
             <div>
-              <p className="eyebrow">PASO {step + 1} DE 4</p>
+              <p className="eyebrow">
+                PASO {step + 1} DE {STEPS.length}
+              </p>
               <h1 ref={stepHeading} tabIndex={-1}>
                 {STEPS[step].title}
               </h1>
@@ -797,9 +808,11 @@ export function Workspace({
                   onEvidence={() => openEvidence("inga")}
                 />
               </div>
+              <SoilGuide />
             </>
           ) : null}
-          {step === 3 ? (
+          {step === 3 ? <CacaoCare farm={farm} onChange={setFarm} /> : null}
+          {step === LAST_STEP ? (
             <>
               {soilPanel}
               <div className="result-edit-links">
@@ -807,6 +820,7 @@ export function Workspace({
                 <Link href="/ubicacion">Cambiar lugar</Link>
                 <Link href="/parcela">Cambiar datos del cultivo</Link>
                 <Link href="/manejo">Cambiar suelo y plantas</Link>
+                <Link href="/cuidados">Revisar cuidados y cosecha</Link>
               </div>
               <ScenarioPanel
                 horizon={horizon}
@@ -858,11 +872,11 @@ export function Workspace({
               )}
             </div>
             <div>
-              {step < 3 ? (
+              {step < LAST_STEP ? (
                 <>
                   <span className="next-step-label">Sigue: {STEPS[step + 1].label}</span>
                   <button className="primary-button wizard-next" onClick={continueStep}>
-                    {step === 2 ? "Ver mi plan" : "Continuar"}
+                    {step === LAST_STEP - 1 ? "Ver mi plan" : "Continuar"}
                     <ArrowRight size={16} />
                   </button>
                 </>
@@ -884,7 +898,7 @@ export function Workspace({
               <Sprout size={17} /> SueloVivo <span>por Theounip</span>
             </span>
             <span>Hecho para acompañar a quienes cultivan cacao en Putumayo.</span>
-            {step === 3 ? (
+            {step === LAST_STEP ? (
               <button className="text-button" onClick={() => window.print()}>
                 <Download size={13} /> Imprimir mi plan
               </button>
@@ -934,6 +948,11 @@ export function Workspace({
             <article className={focusEvidence === e.id ? "highlighted" : ""} key={e.id}>
               <span>{e.organization}</span>
               <h3>{e.title}</h3>
+              {e.section ? (
+                <p>
+                  <strong>{e.section}</strong>
+                </p>
+              ) : null}
               <p>{e.detail}</p>
               <a href={e.url} target="_blank" rel="noreferrer">
                 Consultar fuente <ArrowUpRight size={14} />

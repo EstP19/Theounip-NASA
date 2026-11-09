@@ -57,6 +57,7 @@ export function isFarmInput(value: unknown): value is FarmInput {
     nullable(v.organicMatter, 0, 100) &&
     ["none", "declared", "lab"].includes(v.soilOrigin as string) &&
     ["unknown", "no", "yes"].includes(v.symptoms as string) &&
+    (v.fruiting === undefined || ["unknown", "no", "yes"].includes(v.fruiting as string)) &&
     typeof v.soilDepth === "string" &&
     v.soilDepth.length <= 40 &&
     typeof v.soilDate === "string" &&

@@ -11,7 +11,7 @@ import type {
 import { SPECIES } from "./evidence.ts";
 import { soilBasis } from "./soil-basis.ts";
 
-export const ENGINE_VERSION = "0.2.0";
+export const ENGINE_VERSION = "0.3.0";
 
 export function evaluateScenarios(
   farm: FarmInput,
@@ -56,7 +56,7 @@ export function evaluateScenarios(
     warnings.push(
       "La sombra declarada es densa. Revisar luz y ventilación antes de añadir sombrío; este aviso orienta la inspección, no define un umbral agronómico universal.",
     );
-  if (farm.symptoms === "yes")
+  if (farm.symptoms === "yes" && farm.fruiting !== "no" && farm.state !== "pasture")
     warnings.push(
       "Hay síntomas reportados: registrar frutos afectados y solicitar revisión técnica. El clima no confirma el diagnóstico.",
     );
@@ -77,8 +77,8 @@ export function evaluateScenarios(
         ? `SoilGrids estima un pH de ${basis.ph} a ${soil!.depth}. Úsalo para conversar sobre la acidez del suelo y planear un muestreo. No permite decidir una dosis de cal: hacen falta acidez intercambiable, textura y un análisis local.`
         : basis.ph === null
           ? "Un análisis ayuda a conocer el suelo. Si todavía no lo tienes, puedes empezar por pedir orientación antes de aplicar cal o fertilizantes."
-          : `pH ingresado: ${basis.ph}. ${soil?.ph ? "Damos prioridad a tu dato frente a la estimación del mapa. " : ""}La necesidad y dosis de dolomita dependen también de acidez intercambiable, textura y otros resultados.`,
-    evidence: "ant",
+          : `pH ingresado: ${basis.ph}. ${soil?.ph ? "Damos prioridad a tu dato frente a la estimación del mapa. " : ""}La necesidad y dosis de dolomita dependen también de acidez intercambiable, textura y otros resultados. Revisa con un técnico el aluminio, calcio y magnesio, las unidades y la profundidad de la muestra.`,
+    evidence: "inia-suelos",
     pending: true,
   };
   const waterAction: PlanAction = {
@@ -87,8 +87,10 @@ export function evaluateScenarios(
         ? "Evaluar el encharcamiento primero"
         : "Observar drenaje y circulación del agua",
     reason:
-      "Después de llover, observa dónde se queda el agua y por dónde sale. Eso ayuda a decidir qué revisar antes de sembrar.",
-    evidence: "ica",
+      farm.drainage === "waterlogged"
+        ? "Después de llover, identifica los charcos y por dónde puede salir el agua. Revisa el drenaje del sector con un técnico antes de sembrar."
+        : "Observa por dónde sale el agua después de llover. Si cargaste el clima, fíjate también en cómo se repartió la lluvia durante el año para decidir cuándo recorrer la finca.",
+    evidence: farm.drainage === "waterlogged" ? "ica" : "icco",
     pending: farm.drainage !== "good",
   };
   const shadeAction: PlanAction = {
@@ -97,9 +99,9 @@ export function evaluateScenarios(
         ? "Regular la sombra existente"
         : "Revisar la sombra de los árboles",
     reason: shadeKnown
-      ? `La sombra que indicaste equivale aproximadamente a ${farm.shade}%. Revisa si los árboles protegen al cacao y, a la vez, dejan entrar luz y aire.`
+      ? `La sombra que indicaste equivale aproximadamente a ${farm.shade}%. Revisa la entrada de luz y aire en distintos sectores. ${farm.state === "young" ? "En cacao joven, revisa con un técnico cómo formar la copa y mantener la protección de las plantas." : "Ajusta la poda y la sombra según la etapa del cultivo y cómo reciben luz las copas."}`
       : "Todavía no sabemos cuánta sombra hay. Observa cómo llega el sol al cacao antes de decidir si hacen falta más árboles o una poda.",
-    evidence: farm.species.includes("inga") ? "inga" : "wcs",
+    evidence: "fedecacao-poda",
   };
   const coverAction: PlanAction = {
     title: !coverKnown
@@ -113,9 +115,18 @@ export function evaluateScenarios(
     evidence: "wcs",
   };
   const healthAction: PlanAction = {
-    title: "Organizar rondas sanitarias",
+    title:
+      farm.state === "pasture"
+        ? "Preparar el seguimiento del cacao"
+        : farm.fruiting === "no"
+          ? "Revisar hojas, tallos y brotes"
+          : "Organizar rondas sanitarias",
     reason:
-      "Revisa los frutos con frecuencia. La guía ICA recomienda retirar cada semana los frutos enfermos antes de que dispersen el hongo, junto con el cuidado de la sombra y las podas.",
+      farm.state === "pasture"
+        ? "Al establecer el cacao, organiza recorridos para observar el estado de las plantas y anotar las zonas donde se acumula agua."
+        : farm.fruiting === "no"
+          ? "En plantas sin frutos, observa hojas, tallos y brotes. Anota cambios visibles y consulta a un técnico si aparecen daños."
+          : "Cuando haya frutos, revísalos durante los recorridos. Para el manejo de moniliasis, el ICA recomienda retirar cada semana los frutos enfermos antes de que produzcan esporas.",
     evidence: "ica",
   };
   const carbonAction: PlanAction = {
@@ -244,6 +255,7 @@ export function evaluateScenarios(
         },
         soilAction,
         waterAction,
+        healthAction,
         calendarAction,
       ],
       stages: [
@@ -292,6 +304,7 @@ export function evaluateScenarios(
       actions: [
         waterAction,
         soilAction,
+        healthAction,
         {
           title:
             farm.state === "renewal"

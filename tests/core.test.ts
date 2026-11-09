@@ -175,3 +175,15 @@ test("no saber la sombra o cobertura no se convierte en un porcentaje declarado"
   );
   assert.ok(!result.scenarios[0].actions[0].reason.includes("90%"));
 });
+test("los escenarios adaptan el cuidado a plantas sin frutos y admiten borradores anteriores", () => {
+  assert.ok(isFarmInput(DEFAULT_FARM));
+  assert.ok(!isFarmInput({ ...DEFAULT_FARM, fruiting: "invalid" }));
+  const farm = { ...DEFAULT_FARM, fruiting: "no" as const, symptoms: "yes" as const };
+  const result = evaluateScenarios(farm, 5);
+  assert.ok(
+    result.scenarios.every((scenario) =>
+      scenario.actions.some((action) => action.title === "Revisar hojas, tallos y brotes"),
+    ),
+  );
+  assert.ok(!result.warnings.some((warning) => warning.includes("frutos afectados")));
+});

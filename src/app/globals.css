@@ -2814,7 +2814,7 @@ label.field-label {
 .wizard-progress ol {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   padding: 0;
   margin: 0;
   gap: 14px;
@@ -3714,6 +3714,55 @@ label.field-label {
 .soil-context-panel {
   margin-bottom: 24px;
   padding: clamp(18px, 3vw, 28px);
+}
+.cacao-care-grid {
+  align-items: start;
+}
+.cacao-guide {
+  min-width: 0;
+  padding: clamp(18px, 3vw, 28px);
+}
+.soil-guide {
+  margin-top: 20px;
+}
+.cacao-guide h2 {
+  font-size: clamp(18px, 2vw, 22px);
+}
+.cacao-guide p,
+.cacao-guide ol {
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+.cacao-guide ol {
+  padding-left: 1.25rem;
+}
+.cacao-guide li + li {
+  margin-top: 0.5rem;
+}
+.cacao-guide select {
+  width: 100%;
+  min-height: 44px;
+  font-size: 16px;
+}
+.cacao-guide summary {
+  min-height: 44px;
+  padding-block: 12px;
+  cursor: pointer;
+  font-weight: 650;
+}
+.cacao-guide .guide-source {
+  display: grid;
+  gap: 3px;
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+.guide-source a {
+  color: #194d38;
+  text-decoration: underline;
+}
+.guide-source svg {
+  display: inline;
+  vertical-align: middle;
 }
 .soil-context-panel h2 {
   font-size: clamp(18px, 2vw, 22px);
