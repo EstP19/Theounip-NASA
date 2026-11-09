@@ -152,6 +152,44 @@ test("las tres rutas usan la cobertura declarada y anteponen el drenaje si queda
   }
 });
 
+test("las tres tarjetas comparan acciones concretas y citan fuentes según el lote", () => {
+  const [current, agroforestry, recovery] = evaluateScenarios(
+    {
+      ...DEFAULT_FARM,
+      state: "renewal",
+      drainage: "waterlogged",
+      coverKnown: true,
+      cover: 20,
+      shadeKnown: true,
+      shade: 70,
+      species: ["canavalia"],
+      fruiting: "yes",
+      symptoms: "yes",
+      soilOrigin: "lab",
+      ph: 5.3,
+    },
+    3,
+  ).scenarios;
+  assert.match(current.effects[0].text, /20%/);
+  assert.match(current.effects[2].text, /frutos afectados/);
+  assert.match(agroforestry.effects[0].text, /canavalia/);
+  assert.match(agroforestry.effects[2].text, /70% de sombra/);
+  assert.match(recovery.effects[0].text, /5.3/);
+  assert.match(recovery.effects[2].text, /renovar por sectores/);
+  const water = [current, agroforestry, recovery].map(({ effects }) => effects[1].text);
+  assert.equal(new Set(water).size, 3);
+  assert.ok(water.every((text) => text.includes("charcos")));
+  for (const { effects } of [current, agroforestry, recovery]) {
+    assert.deepEqual(effects.map(({ title }) => title), ["Suelo", "Agua", "Cuidado del cultivo"]);
+    assert.ok(effects.every((effect) => EVIDENCE.some((source) => source.id === effect.evidence)));
+  }
+
+  const pasture = evaluateScenarios({ ...DEFAULT_FARM, state: "pasture" }, 3).scenarios;
+  assert.ok(pasture.every(({ effects }) => !effects[1].text.includes("charcos")));
+  assert.match(pasture[0].effects[2].text, /uso|usa hoy el terreno/);
+  assert.match(pasture[2].effects[2].text, /antes del cacao/);
+});
+
 test("los faltantes se actualizan al ingresar suelo con trazabilidad", () => {
   const result = evaluateScenarios(
     {

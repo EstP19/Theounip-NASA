@@ -38,7 +38,7 @@ export function ScenarioPanel({
         <div>
           <span className="eyebrow">TUS OPCIONES</span>
           <h2>¿Qué camino te gustaría explorar?</h2>
-          <p>Elige una opción para ver sus pasos. Puedes cambiar de idea y comparar.</p>
+          <p>Compara qué harías en tu finca con cada opción y elige una para ver sus pasos.</p>
         </div>
         <div className="horizon-control" role="group" aria-label="Horizonte del escenario">
           {([3, 5, 10] as const).map((n) => (
@@ -74,11 +74,9 @@ export function ScenarioPanel({
               const Icon = i === 0 ? Layers3 : i === 1 ? Leaf : Sprout;
               const isActive = active?.id === scenario.id;
               return (
-                <button
+                <article
                   className={`scenario-card ${isActive ? "active" : ""}`}
                   key={scenario.id}
-                  onClick={() => onSelect(scenario.id)}
-                  aria-pressed={isActive}
                 >
                   <div className="scenario-top">
                     <span className="scenario-icon">
@@ -94,19 +92,41 @@ export function ScenarioPanel({
                     <Clock3 size={13} />
                     {scenario.effort}
                   </div>
-                  <div className="scenario-effects">
-                    {scenario.effects.map((effect) => (
-                      <div key={effect.title}>
-                        <span>{effect.title}</span>
-                        <strong>{effect.text}</strong>
-                      </div>
-                    ))}
-                  </div>
-                  <span className="scenario-explore">
+                  <dl className="scenario-effects">
+                    {scenario.effects.map((effect) => {
+                      const source = EVIDENCE.find((item) => item.id === effect.evidence);
+                      return (
+                        <div key={effect.title}>
+                          <dt>{effect.title}</dt>
+                          <dd>
+                            <strong>{effect.text}</strong>
+                            {source && (
+                              <a
+                                href={source.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                title={source.section ?? source.title}
+                              >
+                                {source.shortName ?? source.organization}
+                                <ArrowUpRight size={11} aria-hidden="true" />
+                              </a>
+                            )}
+                          </dd>
+                        </div>
+                      );
+                    })}
+                  </dl>
+                  <button
+                    type="button"
+                    className="scenario-explore"
+                    onClick={() => onSelect(scenario.id)}
+                    aria-pressed={isActive}
+                    aria-label={`Explorar: ${scenario.title}`}
+                  >
                     {isActive ? "Escenario seleccionado" : "Explorar este escenario"}
                     <ArrowRight size={15} />
-                  </span>
-                </button>
+                  </button>
+                </article>
               );
             })}
           </div>

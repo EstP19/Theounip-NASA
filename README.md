@@ -74,6 +74,8 @@ Las fuentes originales y el alcance científico se documentan en los archivos de
 
 Las fichas y acciones muestran enlaces y secciones de consulta. El plan descargado incluye el catálogo de fuentes en `evidence`.
 
+Las tres tarjetas comparan qué hacer con el suelo, el agua y el cultivo según lo registrado en la finca. Cada fila incluye la fuente de la recomendación.
+
 El paso a paso de cada ruta usa el horizonte, el estado del cacao y lo observado en el lote. En la API y el plan descargado, cada etapa conserva `actions` con el texto y añade `tasks` con títulos y referencias a `evidence`.
 
 - [Guía global para los sistemas de cultivo de cacao](https://www.icco.org/wp-content/uploads/B27407-Cocoa-Grower-Guide-Spanish-CFW-v7-interactive.pdf), Daymond y colaboradores, 2022, pp. 10–11. Sombra, agua y adaptación al lugar.

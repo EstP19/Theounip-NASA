@@ -5,6 +5,7 @@ export const EVIDENCE: Evidence[] = [
     id: "wcs",
     title: "Sistemas agroforestales de cacao",
     organization: "WCS Colombia · 2022",
+    shortName: "WCS Colombia",
     section: "Páginas 11–15, planificación y seguimiento de la finca",
     detail:
       "Planificación predial y secuencias de establecimiento para la Amazonía colombiana, con participación de asociaciones de Putumayo. Las prácticas se adaptan al predio.",
@@ -14,6 +15,7 @@ export const EVIDENCE: Evidence[] = [
     id: "ica",
     title: "Manejo fitosanitario del cacao",
     organization: "Instituto Colombiano Agropecuario",
+    shortName: "ICA",
     section: "Páginas impresas 6–12, 25–27 y anexo de monitoreo, p. 39",
     detail:
       "La guía describe inspección y recolección semanal de frutos enfermos, regulación de sombrío, ventilación y drenaje. Los datos ambientales no diagnostican moniliasis.",
@@ -23,6 +25,7 @@ export const EVIDENCE: Evidence[] = [
     id: "icco",
     title: "Guía global para los sistemas de cultivo de cacao",
     organization: "Daymond y colaboradores · University of Reading · 2022",
+    shortName: "Guía ICCO",
     section: "Páginas impresas 10–11, manejo de sombra, suelo y agua",
     detail:
       "Resume beneficios y límites del sombrío y explica por qué conviene revisar la distribución de las lluvias y adaptar la fertilización al suelo local.",
@@ -32,6 +35,7 @@ export const EVIDENCE: Evidence[] = [
     id: "fedecacao-poda",
     title: "Poda y manejo de luz en el cultivo de cacao y otros frutales",
     organization: "Fedecacao · Fondo Nacional del Cacao · 2019",
+    shortName: "Fedecacao",
     section: "Páginas impresas 11–12 y 20–25, tipos de poda",
     detail:
       "Distingue la formación del cacao joven, el mantenimiento en producción y el ajuste de las copas de los árboles de sombra según la luz de la finca.",
@@ -42,6 +46,7 @@ export const EVIDENCE: Evidence[] = [
     title:
       "Interpretación de análisis de suelos, cálculos de encalado y fertilización para los cultivos de café y cacao",
     organization: "Noelito Salgado Veramendi y Elvis Ottos Diaz · INIA Perú · 2025",
+    shortName: "INIA Perú",
     section: "Páginas 40–44 y capítulos 8–10, muestreo, análisis y cálculos para cacao",
     detail:
       "Explica cómo tomar y etiquetar muestras y cómo interpretar el informe. Los cálculos de encalado y fertilización usan parámetros del laboratorio, del cultivo y del producto. Sus ejemplos se desarrollaron para Perú.",
@@ -51,6 +56,7 @@ export const EVIDENCE: Evidence[] = [
     id: "cosecha",
     title: "Cosecha, beneficio y calidad del grano de cacao",
     organization: "Compañía Nacional de Chocolates · 2019",
+    shortName: "Nacional de Chocolates",
     section: "Páginas 9–10, 19–22 y 24–26, recolección, beneficio y almacenamiento",
     detail:
       "Orienta la selección de mazorcas maduras, el seguimiento de la fermentación, el secado uniforme y la protección del grano durante el almacenamiento.",
@@ -69,6 +75,7 @@ export const EVIDENCE: Evidence[] = [
     id: "inga",
     title: "Protocolo del guamo Inga edulis",
     organization: "CORPOAMAZONIA · 2025",
+    shortName: "Corpoamazonia",
     section: "Páginas 18 y 27, características y usos del guamo",
     detail:
       "Respaldo territorial de la especie y sus usos regionales. Su incorporación como sombrío requiere revisar sitio, densidad y manejo; no aporta un coeficiente de mejora del suelo.",
@@ -105,6 +112,7 @@ export const EVIDENCE: Evidence[] = [
     id: "soilgrids",
     title: "Propiedades y acceso a SoilGrids",
     organization: "ISRIC World Soil Information",
+    shortName: "SoilGrids",
     detail:
       "Estimaciones a 250 m de pH y carbono orgánico para 5–15 cm, consultadas mediante WCS numérico. Se muestran promedio y percentiles 5 y 95 cuando existen. El carbono no se convierte a materia orgánica y el análisis local tiene prioridad. CC BY 4.0.",
     url: "https://docs.isric.org/globaldata/soilgrids/",

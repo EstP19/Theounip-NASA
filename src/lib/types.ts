@@ -81,6 +81,7 @@ export type Evidence = {
   id: EvidenceId;
   title: string;
   organization: string;
+  shortName?: string;
   detail: string;
   url: string;
   section?: string;
@@ -100,7 +101,7 @@ export type Scenario = {
   effort: string;
   actions: PlanAction[];
   stages: Stage[];
-  effects: { title: string; text: string }[];
+  effects: { title: string; text: string; evidence: EvidenceId }[];
 };
 export type ScenarioResult = {
   blocked: boolean;

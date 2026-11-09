@@ -11,7 +11,7 @@ import type {
 import { SPECIES } from "./evidence.ts";
 import { soilBasis } from "./soil-basis.ts";
 
-export const ENGINE_VERSION = "0.4.0";
+export const ENGINE_VERSION = "0.4.1";
 
 function stage(year: number, label: string, tasks: PlanAction[]): Stage {
   // Los consumidores anteriores del plan pueden seguir leyendo la lista de textos.
@@ -368,6 +368,114 @@ export function evaluateScenarios(
     agroActions.sort((a, b) => Number(b === soilAction) - Number(a === soilAction));
   if (farm.priority === "renovation")
     agroActions.sort((a, b) => Number(b === sequenceAction) - Number(a === sequenceAction));
+
+  const hasLabPh = basis.phSource === "lab";
+  const coverNames = SPECIES.filter(
+    (s) => (s.id === "canavalia" || s.id === "centrosema") && farm.species.includes(s.id),
+  )
+    .map((s) => s.name.toLowerCase())
+    .join(" o ");
+  const effects: Record<Scenario["id"], Scenario["effects"]> = {
+    current: [
+      {
+        title: "Suelo",
+        text: coverKnown
+          ? `Registrar el ${farm.cover}% de suelo cubierto`
+          : hasLabPh
+            ? `Guardar el pH medido de ${basis.ph} para comparar`
+            : "Anotar qué zonas tienen el suelo cubierto",
+        evidence: coverKnown || !hasLabPh ? "wcs" : "inia-suelos",
+      },
+      {
+        title: "Agua",
+        text: waterlogged
+          ? "Marcar dónde quedan los charcos tras la lluvia"
+          : farm.drainage === "good"
+            ? "Mantener libres las salidas de agua"
+            : "Mirar por dónde corre el agua al llover",
+        evidence: farm.drainage === "unknown" ? "icco" : "ica",
+      },
+      {
+        title: "Cuidado del cultivo",
+        text: !existingCacao
+          ? "Registrar cómo se usa hoy el terreno"
+          : affectedFruit
+            ? "Anotar y mostrar los frutos afectados"
+            : hasFruit
+              ? "Separar las mazorcas maduras y sanas"
+              : farm.fruiting === "no"
+                ? "Revisar hojas, tallos y brotes"
+                : "Revisar las plantas y anotar si ya hay frutos",
+        evidence: !existingCacao ? "wcs" : hasFruit && !affectedFruit ? "cosecha" : "ica",
+      },
+    ],
+    agroforestry: [
+      {
+        title: "Suelo",
+        text: !coverKnown
+          ? "Ubicar suelo desnudo antes de elegir coberturas"
+          : farm.cover >= 40
+            ? "Conservar la cobertura y revisar los claros"
+            : coverNames
+              ? `Evaluar ${coverNames} en un sector`
+              : "Probar cobertura en un tramo descubierto",
+        evidence: "wcs",
+      },
+      {
+        title: "Agua",
+        text: waterlogged
+          ? "Revisar los charcos antes de añadir plantas"
+          : farm.drainage === "good"
+            ? "Mantener el drenaje al probar la cobertura"
+            : "Revisar el drenaje donde probarás la cobertura",
+        evidence: waterlogged ? "ica" : "icco",
+      },
+      {
+        title: "Cuidado del cultivo",
+        text: denseShade
+          ? `Revisar la luz y el aire con ${farm.shade}% de sombra`
+          : !shadeKnown
+            ? "Observar la sombra antes de añadir árboles"
+            : farm.species.includes("inga")
+              ? "Evaluar si el guamo cabe en el sector"
+              : "Elegir sombra que deje pasar luz y aire",
+        evidence: !denseShade && shadeKnown && farm.species.includes("inga")
+          ? "inga"
+          : "fedecacao-poda",
+      },
+    ],
+    recovery: [
+      {
+        title: "Suelo",
+        text: hasLabPh
+          ? `Revisar con un técnico el pH de ${basis.ph}`
+          : basis.phSource === "soilgrids"
+            ? `Confirmar en la finca el pH estimado de ${basis.ph}`
+            : "Tomar una muestra del primer sector",
+        evidence: "inia-suelos",
+      },
+      {
+        title: "Agua",
+        text: waterlogged
+          ? "Revisar primero el drenaje del sector con charcos"
+          : farm.drainage === "good"
+            ? "Conservar el drenaje al intervenir cada sector"
+            : "Comprobar el drenaje del primer sector",
+        evidence: farm.drainage === "unknown" ? "icco" : "ica",
+      },
+      {
+        title: "Cuidado del cultivo",
+        text: farm.state === "pasture"
+          ? "Preparar sombra y cobertura antes del cacao"
+          : farm.state === "renewal"
+            ? "Conservar plantas productivas y renovar por sectores"
+            : affectedFruit
+              ? "Revisar los daños antes de reponer plantas"
+              : "Ubicar las plantas débiles o los sitios sin cacao",
+        evidence: farm.state === "renewal" ? "fedecacao-poda" : affectedFruit ? "ica" : "wcs",
+      },
+    ],
+  };
   const scenarios: Scenario[] = [
     {
       id: "current",
@@ -386,11 +494,7 @@ export function evaluateScenarios(
         calendarAction,
       ],
       stages: stagePlan("current"),
-      effects: [
-        { title: "Suelo", text: "Ver cómo cambia con el tiempo" },
-        { title: "Agua", text: "Observar el agua después de llover" },
-        { title: "Cuidado del cultivo", text: "Revisar los frutos y las plantas" },
-      ],
+      effects: effects.current,
     },
     {
       id: "agroforestry",
@@ -399,11 +503,7 @@ export function evaluateScenarios(
       effort: "Cuidados a lo largo del año",
       actions: agroActions,
       stages: stagePlan("agroforestry"),
-      effects: [
-        { title: "Suelo", text: "Proteger con hojas y otras plantas" },
-        { title: "Agua", text: "Cuidar sombra, luz y humedad" },
-        { title: "Cuidado del cultivo", text: "Dejar entrar aire y cuidar las podas" },
-      ],
+      effects: effects.agroforestry,
     },
     {
       id: "recovery",
@@ -433,11 +533,7 @@ export function evaluateScenarios(
         shadeAction,
       ],
       stages: stagePlan("recovery"),
-      effects: [
-        { title: "Suelo", text: "Conocer el suelo antes de intervenir" },
-        { title: "Agua", text: "Revisar charcos antes de sembrar" },
-        { title: "Cuidado del cultivo", text: "Observar el cultivo desde el comienzo" },
-      ],
+      effects: effects.recovery,
     },
   ];
   return { blocked: false, warnings, missing, scenarios };
