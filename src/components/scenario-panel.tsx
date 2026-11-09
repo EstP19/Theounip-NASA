@@ -23,6 +23,17 @@ type Props = {
   onEvidence: (id: EvidenceId) => void;
 };
 
+function SourceLink({ id, size = 13 }: { id: EvidenceId; size?: number }) {
+  const source = EVIDENCE.find((item) => item.id === id);
+  if (!source) return null;
+  return (
+    <a href={source.url} target="_blank" rel="noreferrer" title={source.section ?? source.title}>
+      {source.shortName ?? source.organization}
+      <ArrowUpRight size={size} aria-hidden="true" />
+    </a>
+  );
+}
+
 export function ScenarioPanel({
   horizon,
   result,
@@ -74,10 +85,7 @@ export function ScenarioPanel({
               const Icon = i === 0 ? Layers3 : i === 1 ? Leaf : Sprout;
               const isActive = active?.id === scenario.id;
               return (
-                <article
-                  className={`scenario-card ${isActive ? "active" : ""}`}
-                  key={scenario.id}
-                >
+                <article className={`scenario-card ${isActive ? "active" : ""}`} key={scenario.id}>
                   <div className="scenario-top">
                     <span className="scenario-icon">
                       <Icon size={21} />
@@ -93,28 +101,15 @@ export function ScenarioPanel({
                     {scenario.effort}
                   </div>
                   <dl className="scenario-effects">
-                    {scenario.effects.map((effect) => {
-                      const source = EVIDENCE.find((item) => item.id === effect.evidence);
-                      return (
-                        <div key={effect.title}>
-                          <dt>{effect.title}</dt>
-                          <dd>
-                            <strong>{effect.text}</strong>
-                            {source && (
-                              <a
-                                href={source.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                title={source.section ?? source.title}
-                              >
-                                {source.shortName ?? source.organization}
-                                <ArrowUpRight size={11} aria-hidden="true" />
-                              </a>
-                            )}
-                          </dd>
-                        </div>
-                      );
-                    })}
+                    {scenario.effects.map((effect) => (
+                      <div key={effect.title}>
+                        <dt>{effect.title}</dt>
+                        <dd>
+                          <strong>{effect.text}</strong>
+                          <SourceLink id={effect.evidence} size={11} />
+                        </dd>
+                      </div>
+                    ))}
                   </dl>
                   <button
                     type="button"
@@ -150,8 +145,8 @@ export function ScenarioPanel({
                   <Sprout size={22} />
                 </div>
                 <p className="timeline-intro">
-                  Cuenta los años desde el inicio de este plan. Ajusta las labores al estado de tu
-                  cultivo y a lo que observes en cada visita.
+                  Empieza con las tareas de «Inicio». Los años se cuentan desde el comienzo del
+                  plan; revisa cada etapa antes de decidir qué hacer después.
                 </p>
                 <div className="timeline">
                   {active.stages.map((stage) => (
@@ -166,27 +161,25 @@ export function ScenarioPanel({
                           {stage.tasks.map((task) => (
                             <li key={task.title}>
                               <strong>{task.title}</strong>
+                              {task.basedOn && <p className="timeline-basis">{task.basedOn}</p>}
                               <p>{task.reason}</p>
                               <div className="timeline-sources">
-                                {[task.evidence, ...(task.supportingEvidence ?? [])].map((id) => {
-                                  const source = EVIDENCE.find((item) => item.id === id);
-                                  return source ? (
-                                    <a
-                                      key={id}
-                                      href={source.url}
-                                      title={source.section ?? source.title}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                    >
-                                      {source.organization}{" "}
-                                      <ArrowUpRight size={13} aria-hidden="true" />
-                                    </a>
-                                  ) : null;
-                                })}
+                                {[task.evidence, ...(task.supportingEvidence ?? [])].map((id) => (
+                                  <SourceLink key={id} id={id} />
+                                ))}
                               </div>
                             </li>
                           ))}
                         </ul>
+                        <div className="timeline-checkpoint">
+                          <strong>
+                            <Check size={14} aria-hidden="true" /> Antes de seguir
+                          </strong>
+                          <p>{stage.checkpoint.reason}</p>
+                          <div className="timeline-sources">
+                            <SourceLink id={stage.checkpoint.evidence} />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}

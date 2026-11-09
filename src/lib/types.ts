@@ -89,11 +89,19 @@ export type Evidence = {
 export type PlanAction = {
   title: string;
   reason: string;
+  basedOn?: string;
   evidence: EvidenceId;
   supportingEvidence?: EvidenceId[];
   pending?: boolean;
 };
-export type Stage = { year: number; label: string; actions: string[]; tasks: PlanAction[] };
+export type Checkpoint = Pick<PlanAction, "reason" | "evidence">;
+export type Stage = {
+  year: number;
+  label: string;
+  actions: string[];
+  tasks: PlanAction[];
+  checkpoint: Checkpoint;
+};
 export type Scenario = {
   id: "current" | "agroforestry" | "recovery";
   title: string;

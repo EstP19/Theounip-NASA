@@ -1483,6 +1483,27 @@ label.field-label {
   margin: 4px 0;
   color: #52634b;
 }
+.timeline-tasks li > .timeline-basis {
+  font-size: 0.8rem;
+  color: #526b41;
+  font-weight: 550;
+}
+.timeline-checkpoint {
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: #edf3e8;
+  border-radius: 8px;
+  color: #344e36;
+  font-size: 0.85rem;
+}
+.timeline-checkpoint > strong {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.timeline-checkpoint p {
+  margin: 4px 0;
+}
 .timeline-sources {
   display: flex;
   flex-wrap: wrap;

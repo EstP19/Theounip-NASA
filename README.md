@@ -76,7 +76,7 @@ Las fichas y acciones muestran enlaces y secciones de consulta. El plan descarga
 
 Las tres tarjetas comparan qué hacer con el suelo, el agua y el cultivo según lo registrado en la finca. Cada fila incluye la fuente de la recomendación.
 
-El paso a paso de cada ruta usa el horizonte, el estado del cacao y lo observado en el lote. En la API y el plan descargado, cada etapa conserva `actions` con el texto y añade `tasks` con títulos y referencias a `evidence`.
+En «Tu plan», el paso a paso de cada ruta usa el horizonte, el estado del cacao y lo observado en el lote. En la API y el plan descargado, cada etapa conserva `actions` con el texto, incluye `tasks` con títulos, datos de origen cuando aplica (`basedOn`) y referencias a `evidence`, e indica qué comprobar antes de continuar (`checkpoint`).
 
 - [Guía global para los sistemas de cultivo de cacao](https://www.icco.org/wp-content/uploads/B27407-Cocoa-Grower-Guide-Spanish-CFW-v7-interactive.pdf), Daymond y colaboradores, 2022, pp. 10–11. Sombra, agua y adaptación al lugar.
 - [Poda y manejo de luz en el cultivo de cacao y otros frutales](https://nvfdhqlkqowvedolvsvw.supabase.co/storage/v1/object/public/Informacion%20Publica/documentos%20tecnicos/Libro%20Manejo%20luz%20cultivo%20cacao.pdf), Fedecacao, 2019, pp. 11–12 y 20–25. Tipos de poda y regulación de la luz. Disponible en la [biblioteca técnica de Fedecacao](https://www.fedecacao.com.co/documentos-tecnicos).

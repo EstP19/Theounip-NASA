@@ -128,4 +128,14 @@ test("el plan usa pH y carbono estimados sin inventar materia orgánica o dosis 
     soil,
   );
   assert.match(labResult.scenarios[1].actions[0].reason, /pH ingresado: 6.1/);
+  const estimatedTask = result.scenarios[2].stages[0].tasks.find((task) =>
+    task.basedOn?.includes("SoilGrids"),
+  );
+  assert.match(estimatedTask?.reason ?? "", /pH estimado de 5.4/);
+  assert.deepEqual(estimatedTask?.supportingEvidence, ["soilgrids"]);
+  const measuredTask = labResult.scenarios[2].stages[0].tasks.find((task) =>
+    task.basedOn?.includes("laboratorio"),
+  );
+  assert.match(measuredTask?.reason ?? "", /pH de 6.1/);
+  assert.equal(measuredTask?.supportingEvidence, undefined);
 });

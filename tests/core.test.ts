@@ -149,7 +149,15 @@ test("las tres rutas usan la cobertura declarada y anteponen el drenaje si queda
   }
   for (const scenario of evaluateScenarios({ ...farm, drainage: "waterlogged" }, 3).scenarios) {
     assert.equal(scenario.stages[0].tasks[0].title, "Evaluar el encharcamiento primero");
+    assert.match(scenario.stages[0].tasks[0].basedOn ?? "", /Indicaste que quedan charcos/);
   }
+  const wet = evaluateScenarios({ ...farm, drainage: "waterlogged" }, 5).scenarios;
+  assert.match(wet[0].stages[0].checkpoint.reason, /próxima visita/);
+  assert.match(wet[1].stages[0].checkpoint.reason, /antes de agregar plantas/);
+  assert.match(wet[2].stages[0].checkpoint.reason, /antes de sembrar/);
+  assert.ok(wet.every(({ stages }) =>
+    stages.every(({ checkpoint }) => EVIDENCE.some(({ id }) => id === checkpoint.evidence)),
+  ));
 });
 
 test("las tres tarjetas comparan acciones concretas y citan fuentes según el lote", () => {
