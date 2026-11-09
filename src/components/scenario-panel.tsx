@@ -12,6 +12,7 @@ import {
   Clock3,
 } from "lucide-react";
 import type { EvidenceId, Horizon, ScenarioResult } from "@/lib/types";
+import { EVIDENCE } from "@/lib/evidence";
 
 type Props = {
   horizon: Horizon;
@@ -128,6 +129,10 @@ export function ScenarioPanel({
                   </div>
                   <Sprout size={22} />
                 </div>
+                <p className="timeline-intro">
+                  Cuenta los años desde el inicio de este plan. Ajusta las labores al estado de tu
+                  cultivo y a lo que observes en cada visita.
+                </p>
                 <div className="timeline">
                   {active.stages.map((stage) => (
                     <div className="timeline-stage" key={stage.year}>
@@ -137,9 +142,29 @@ export function ScenarioPanel({
                       </div>
                       <div>
                         <h4>{stage.label}</h4>
-                        <ul>
-                          {stage.actions.map((action) => (
-                            <li key={action}>{action}</li>
+                        <ul className="timeline-tasks">
+                          {stage.tasks.map((task) => (
+                            <li key={task.title}>
+                              <strong>{task.title}</strong>
+                              <p>{task.reason}</p>
+                              <div className="timeline-sources">
+                                {[task.evidence, ...(task.supportingEvidence ?? [])].map((id) => {
+                                  const source = EVIDENCE.find((item) => item.id === id);
+                                  return source ? (
+                                    <a
+                                      key={id}
+                                      href={source.url}
+                                      title={source.section ?? source.title}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      {source.organization}{" "}
+                                      <ArrowUpRight size={13} aria-hidden="true" />
+                                    </a>
+                                  ) : null;
+                                })}
+                              </div>
+                            </li>
                           ))}
                         </ul>
                       </div>

@@ -74,7 +74,9 @@ export type EvidenceId =
   | "fedecacao-poda"
   | "inia-suelos"
   | "cosecha"
-  | "trazabilidad";
+  | "trazabilidad"
+  | "fundesyram"
+  | "plantvillage";
 export type Evidence = {
   id: EvidenceId;
   title: string;
@@ -83,8 +85,14 @@ export type Evidence = {
   url: string;
   section?: string;
 };
-export type PlanAction = { title: string; reason: string; evidence: EvidenceId; pending?: boolean };
-export type Stage = { year: number; label: string; actions: string[] };
+export type PlanAction = {
+  title: string;
+  reason: string;
+  evidence: EvidenceId;
+  supportingEvidence?: EvidenceId[];
+  pending?: boolean;
+};
+export type Stage = { year: number; label: string; actions: string[]; tasks: PlanAction[] };
 export type Scenario = {
   id: "current" | "agroforestry" | "recovery";
   title: string;

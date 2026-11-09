@@ -5,6 +5,7 @@ export const EVIDENCE: Evidence[] = [
     id: "wcs",
     title: "Sistemas agroforestales de cacao",
     organization: "WCS Colombia · 2022",
+    section: "Páginas 11–15, planificación y seguimiento de la finca",
     detail:
       "Planificación predial y secuencias de establecimiento para la Amazonía colombiana, con participación de asociaciones de Putumayo. Las prácticas se adaptan al predio.",
     url: "https://colombia.wcs.org/Portals/113/Publicaciones%20y%20libros/Lineamientos%20para%20establecimiento%20de%20Sistemas%20Agroforestales%20de%20cacao_2022.pdf",
@@ -13,7 +14,7 @@ export const EVIDENCE: Evidence[] = [
     id: "ica",
     title: "Manejo fitosanitario del cacao",
     organization: "Instituto Colombiano Agropecuario",
-    section: "Páginas impresas 6–12 y 25–27",
+    section: "Páginas impresas 6–12, 25–27 y anexo de monitoreo, p. 39",
     detail:
       "La guía describe inspección y recolección semanal de frutos enfermos, regulación de sombrío, ventilación y drenaje. Los datos ambientales no diagnostican moniliasis.",
     url: "https://www.ica.gov.co/getattachment/56449f50-f3fa-4254-a410-3153a872e8bb/Manejo-fitosanitario-del-cultivo-del-cacao.pdf",
@@ -68,6 +69,7 @@ export const EVIDENCE: Evidence[] = [
     id: "inga",
     title: "Protocolo del guamo Inga edulis",
     organization: "CORPOAMAZONIA · 2025",
+    section: "Páginas 18 y 27, características y usos del guamo",
     detail:
       "Respaldo territorial de la especie y sus usos regionales. Su incorporación como sombrío requiere revisar sitio, densidad y manejo; no aporta un coeficiente de mejora del suelo.",
     url: "https://api.corpoamazonia.gov.co/images/catalogue/1972/Protocolo_11c7.pdf",
@@ -76,9 +78,28 @@ export const EVIDENCE: Evidence[] = [
     id: "ant",
     title: "Suelo y manejo en Villagarzón",
     organization: "Agencia Nacional de Tierras",
+    section: "Página 101 del PDF, enmiendas a partir del análisis de suelo",
     detail:
       "Las recomendaciones de enmiendas y fertilización se basan en análisis de suelo. El pH por sí solo no determina una dosis de dolomita.",
     url: "https://geoportal.ant.gov.co/Planes-UAF/86885_VILLAGARZON_PUBLICACION/86885_Villagarzon_Putumayo/DTC%20Villagarz%C3%B3n%20-%20Putumayo%20-%20CB.pdf",
+  },
+  {
+    id: "fundesyram",
+    title: "Factores que influyen en la presencia de enfermedades en el cultivo de cacao",
+    organization: "Jaimes y Aranzazu · FUNDESYRAM",
+    section: "Apartados Precipitación y humedad relativa, Suelo y Sombrío",
+    detail:
+      "Relaciona las condiciones de humedad, drenaje y entrada de aire con la vigilancia fitosanitaria.",
+    url: "https://fundesyram.info/fichas/factores-que-influyen-en-la-presencia-de-enfermedades-en-el-cultivo-de-cacao",
+  },
+  {
+    id: "plantvillage",
+    title: "Cocoa (cacao): guía de enfermedades y plagas",
+    organization: "PlantVillage · Penn State",
+    section: "Common Pests and Diseases, fichas de moniliasis, mazorca negra y escoba de bruja",
+    detail:
+      "Reúne ejemplos de señales en mazorcas y brotes que sirven como referencia para describir observaciones de campo.",
+    url: "https://plantvillage.psu.edu/topics/cocoa-cacao/infos",
   },
   {
     id: "soilgrids",

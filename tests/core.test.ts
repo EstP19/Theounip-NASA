@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { aggregatePower } from "../src/lib/climate.ts";
 import { evaluateScenarios } from "../src/lib/scenarios.ts";
+import { EVIDENCE } from "../src/lib/evidence.ts";
 import {
   DEFAULT_FARM,
   DEMO_POINT,
@@ -114,6 +115,30 @@ test("el horizonte modifica etapas y la renovación depende del estado del lote"
     [0, 1, 3, 5, 10],
   );
   assert.equal(long.scenarios[2].title, "Renovar poco a poco");
+  assert.equal(long.scenarios[0].stages[1].tasks[0].title, "Organizar las labores que ya haces");
+  assert.equal(
+    long.scenarios[1].stages[1].tasks[0].title,
+    "Probar sombra y cobertura en un sector",
+  );
+  assert.equal(long.scenarios[2].stages[1].tasks[0].title, "Renovar un sector a la vez");
+});
+
+test("las rutas con frutos muestran cosecha al inicio y cada tarea enlaza una fuente", () => {
+  const withFruit = evaluateScenarios({ ...DEFAULT_FARM, fruiting: "yes", symptoms: "yes" }, 5);
+  const withoutFruit = evaluateScenarios({ ...DEFAULT_FARM, fruiting: "no" }, 5);
+  const sources = new Set(EVIDENCE.map((source) => source.id));
+  for (const scenario of withFruit.scenarios) {
+    assert.ok(scenario.stages[0].tasks.some((task) => task.evidence === "cosecha"));
+    assert.ok(scenario.stages[0].tasks.some((task) => task.evidence === "plantvillage"));
+    for (const { tasks } of scenario.stages) {
+      assert.ok(tasks.every((task) => sources.has(task.evidence)));
+    }
+  }
+  assert.ok(
+    withoutFruit.scenarios.every((scenario) =>
+      scenario.stages[0].tasks.every((task) => task.evidence !== "cosecha"),
+    ),
+  );
 });
 
 test("los faltantes se actualizan al ingresar suelo con trazabilidad", () => {

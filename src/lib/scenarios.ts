@@ -11,7 +11,12 @@ import type {
 import { SPECIES } from "./evidence.ts";
 import { soilBasis } from "./soil-basis.ts";
 
-export const ENGINE_VERSION = "0.3.0";
+export const ENGINE_VERSION = "0.4.0";
+
+function stage(year: number, label: string, tasks: PlanAction[]): Stage {
+  // Los consumidores anteriores del plan pueden seguir leyendo la lista de textos.
+  return { year, label, actions: tasks.map((task) => task.reason), tasks };
+}
 
 export function evaluateScenarios(
   farm: FarmInput,
@@ -88,7 +93,7 @@ export function evaluateScenarios(
         : "Observar drenaje y circulación del agua",
     reason:
       farm.drainage === "waterlogged"
-        ? "Después de llover, identifica los charcos y por dónde puede salir el agua. Revisa el drenaje del sector con un técnico antes de sembrar."
+        ? "Después de llover, marca los charcos y anota cuánto tardan en desaparecer y hacia dónde corre el agua. Revisa el drenaje del sector con un técnico antes de la siembra."
         : "Observa por dónde sale el agua después de llover. Si cargaste el clima, fíjate también en cómo se repartió la lluvia durante el año para decidir cuándo recorrer la finca.",
     evidence: farm.drainage === "waterlogged" ? "ica" : "icco",
     pending: farm.drainage !== "good",
@@ -167,64 +172,178 @@ export function evaluateScenarios(
   const selectedNames = SPECIES.filter((s) => farm.species.includes(s.id))
     .map((s) => s.name.toLowerCase())
     .join(", ");
-  const stagePlan = (kind: "agroforestry" | "recovery"): Stage[] => [
-    {
-      year: 0,
-      label: "Antes de intervenir",
-      actions: [
-        "Conocer el suelo, cómo sale el agua y qué había antes en el terreno.",
-        "Anotar cómo está la finca y conversar sobre los cambios que quieres hacer.",
-      ],
+  const existingCacao = farm.state !== "pasture";
+  const hasFruit = existingCacao && farm.fruiting === "yes";
+  const affectedFruit = existingCacao && farm.fruiting !== "no" && farm.symptoms === "yes";
+  const denseShade = shadeKnown && farm.shade >= 60;
+  const waterlogged = farm.drainage === "waterlogged";
+  const cropRecord: PlanAction = {
+    title: "Identificar los lotes y sus labores",
+    reason:
+      "Dale un código a cada sector. Anota fecha, labor y observaciones con ese código. Al vender, conserva el peso seco y el comprobante asociado al lote.",
+    evidence: "trazabilidad",
+  };
+  const sampling: PlanAction = {
+    ...soilAction,
+    ...(basis.phSource === "soilgrids" ? { supportingEvidence: ["soilgrids"] } : {}),
+    reason:
+      farm.soilOrigin === "lab" && farm.ph !== null
+        ? `Lleva el informe con el pH de ${farm.ph} y confirma la fecha, profundidad y unidades. Revisa con el técnico el aluminio, calcio, magnesio y la textura antes de decidir el encalado.`
+        : `${basis.phSource === "soilgrids" ? `Usa el pH estimado de ${basis.ph} a ${soil!.depth} para orientar la visita. ` : ""}Separa zonas de suelo, pendiente y manejo parecidos. Reúne submuestras de cada zona, etiqueta lote, fecha y profundidad, y llévalas al laboratorio.`,
+  };
+  const localSoilReview: PlanAction = {
+    title: "Acordar el manejo del suelo con el técnico",
+    reason:
+      "Entrega el análisis del sector. Revisa con el técnico la acidez y los nutrientes para decidir si hace falta una enmienda o fertilizante y cómo aplicarlo.",
+    evidence: "ant",
+  };
+  const describeDamage: PlanAction = {
+    title: "Describir los daños que observaste",
+    reason:
+      "Anota el sector, la parte de la planta y el aspecto de las manchas o el polvillo. Compara tus observaciones con las fichas y llévalas a la visita técnica.",
+    evidence: "plantvillage",
+  };
+  const harvest: PlanAction = {
+    title: hasFruit ? "Cuidar la próxima cosecha" : "Preparar el beneficio cuando haya cosecha",
+    reason:
+      "Escoge mazorcas maduras y sanas y protege los puntos donde nacen las flores. Registra el inicio de fermentación, seca el grano de manera uniforme y mide su humedad antes de empacarlo.",
+    evidence: "cosecha",
+  };
+  const repeatSoil: PlanAction = {
+    title: "Comparar el suelo con el registro inicial",
+    reason:
+      "Toma muestras del mismo sector y a la misma profundidad que al inicio. Compara pH y materia orgánica usando métodos equivalentes. Si aún falta la primera muestra, tómala y consérvala como punto de partida.",
+    evidence: "inia-suelos",
+  };
+  const speciesReview: PlanAction = {
+    title: "Revisar las plantas elegidas",
+    reason: selectedNames
+      ? `Revisa con el técnico si ${selectedNames} se adapta al sector y qué espacio y manejo requiere. En la visita de seguimiento, anota cuáles plantas prendieron y dónde hace falta ajustar la sombra o cobertura.`
+      : "Identifica qué sectores necesitan sombra o cobertura. Escoge las plantas con asesoría local y acuerda cómo revisar su establecimiento.",
+    evidence: farm.species.length === 1 && farm.species.includes("inga") ? "inga" : "wcs",
+  };
+  const wetShadeReview: PlanAction = {
+    title: "Revisar humedad y ventilación",
+    reason:
+      "Después de llover, recorre los sectores húmedos. Fíjate dónde tarda en secarse el cultivo y dónde las copas se juntan. Anota esos lugares para orientar la revisión de sombra y sanidad.",
+    evidence: "fundesyram",
+  };
+  const yearlyWork: Record<Scenario["id"], PlanAction> = {
+    current: {
+      title: existingCacao
+        ? "Organizar las labores que ya haces"
+        : "Registrar el manejo actual del terreno",
+      reason: existingCacao
+        ? "Haz un calendario por sector con la poda, el cuidado de la cobertura y las rondas de revisión. Anota la fecha de cada labor y las plantas que requieren seguimiento."
+        : "Marca los tramos con suelo cubierto, pisoteo o charcos y anota cómo se usa el terreno. Guarda fotos de esos puntos para comparar en las próximas visitas.",
+      evidence: "wcs",
     },
-    {
-      year: 1,
-      label:
-        kind === "recovery" ? "Preparar y establecer por etapas" : "Empezar con pequeños cambios",
-      actions: [
-        farm.drainage === "waterlogged"
-          ? "Resolver la evaluación de drenaje antes de la siembra."
-          : "Revisar si el terreno está listo antes de sembrar.",
-        kind === "recovery" && farm.state === "renewal"
-          ? "Definir sectores para renovación gradual, sin asumir reemplazo total."
-          : "Elegir plantas para cubrir el suelo y dar sombra según lo que necesita el cacao.",
-        selectedNames
-          ? `Revisar si ${selectedNames} se adapta al lugar y cómo cuidarlo.`
-          : "Seleccionar especies con asesoría local.",
-      ],
+    agroforestry: {
+      title: "Probar sombra y cobertura en un sector",
+      reason:
+        "Ubica los árboles que ya dan sombra y los tramos de suelo descubierto. Define con el técnico qué conservar, dónde ensayar coberturas y cómo dejar espacio para recorrer el cacao.",
+      evidence: "wcs",
     },
-    {
-      year: 3,
-      label: "Cuidar y observar los cambios",
-      actions: [
-        "Cuidar las podas, dejar entrar aire y revisar los frutos con frecuencia.",
-        "Si puedes, repite el análisis de suelo y compáralo con el primero, tomando la muestra de la misma manera.",
-      ],
+    recovery: {
+      title:
+        farm.state === "renewal"
+          ? "Renovar un sector a la vez"
+          : "Preparar el sector para recuperar",
+      reason:
+        farm.state === "renewal"
+          ? "Marca los árboles productivos, los que requieren poda y los que conviene evaluar para renovación. Acuerda con el técnico el primer sector y conserva los árboles útiles mientras haces el cambio."
+          : farm.state === "pasture"
+            ? "Delimita el terreno intervenido y revisa su drenaje. Planifica la cobertura y la sombra junto con el establecimiento del cacao. Conserva los bosques y la vegetación asociada a las quebradas."
+            : "Marca los tramos con plantas débiles, faltantes o suelo descubierto. Revisa qué ajustes de sombra y cobertura necesita cada tramo antes de reponer plantas.",
+      evidence: farm.state === "renewal" ? "fedecacao-poda" : "wcs",
     },
-    ...(horizon >= 5
-      ? [
+  };
+  const followUp: Record<Scenario["id"], PlanAction> = {
+    current: {
+      title: "Volver a los mismos puntos del lote",
+      reason:
+        "Repite el recorrido inicial. Compara fotos, zonas encharcadas y plantas con daños usando el mismo sector y un recorrido comparable. Ajusta la frecuencia de las labores donde se repitan problemas.",
+      evidence: "wcs",
+    },
+    agroforestry: {
+      title: "Comprobar cómo quedó la combinación de plantas",
+      reason:
+        "Revisa cuáles plantas se establecieron, cuánto suelo quedó protegido y cómo pasa el aire entre las copas. Usa esas observaciones para decidir dónde ajustar la poda o extender el ensayo.",
+      evidence: "fedecacao-poda",
+    },
+    recovery: {
+      title: "Evaluar los sectores recuperados",
+      reason:
+        "Cuenta las plantas que se establecieron y anota los sitios que siguen con charcos, suelo descubierto o fallas de crecimiento. Revisa esas causas antes de reponer plantas o pasar al siguiente sector.",
+      evidence: "wcs",
+    },
+  };
+  const stagePlan = (kind: Scenario["id"]): Stage[] => {
+    const includesCacao = existingCacao || kind !== "current";
+    const initial =
+      waterlogged || farm.priority === "water"
+        ? [waterAction, sampling, cropRecord]
+        : [sampling, cropRecord, waterAction];
+    if (existingCacao) initial.push(healthAction);
+    if (affectedFruit) initial.push(describeDamage);
+    if (hasFruit) initial.push(harvest);
+    if (wettest?.length) initial.push(calendarAction);
+
+    const firstYear = [yearlyWork[kind]];
+    if (waterlogged && kind !== "current") firstYear.unshift(waterAction);
+    if (existingCacao) firstYear.push(shadeAction);
+    if (denseShade || waterlogged) firstYear.push(wetShadeReview);
+    if (kind !== "current") firstYear.push(speciesReview);
+    firstYear.push(localSoilReview);
+
+    const stages = [
+      stage(
+        0,
+        {
+          current: "Registrar cómo manejas la finca",
+          agroforestry: "Elegir dónde probar los cambios",
+          recovery: "Identificar qué sectores recuperar",
+        }[kind],
+        initial,
+      ),
+      stage(1, "Poner en práctica el manejo elegido", firstYear),
+      stage(3, "Revisar el avance por sector", [
+        followUp[kind],
+        repeatSoil,
+        ...(includesCacao ? [harvest] : []),
+      ]),
+    ];
+    if (horizon >= 5) {
+      stages.push(
+        stage(5, "Decidir qué conviene ajustar", [
           {
-            year: 5,
-            label: "Ajustar lo que sea necesario",
-            actions: [
-              "Revisar cambios observados en suelo, cobertura y drenaje.",
-              "Adaptar podas, especies y sectores con base en los registros.",
-            ],
+            title: "Revisar qué funcionó y cuánto trabajo requirió",
+            reason: `Compara las labores y sus costos por sector${includesCacao ? " junto con los registros de grano seco que tengas" : ""}. ${kind === "current" ? "Conserva las labores que dieron resultado y cambia las que dejaron problemas repetidos." : kind === "agroforestry" ? "Extiende las combinaciones que funcionaron donde haya condiciones parecidas de luz, suelo y agua." : "Elige el siguiente sector según el establecimiento de las plantas, el drenaje y el trabajo disponible."}`,
+            evidence: "wcs",
           },
-        ]
-      : []),
-    ...(horizon >= 10
-      ? [
+          cropRecord,
+        ]),
+      );
+    }
+    if (horizon >= 10) {
+      stages.push(
+        stage(10, "Preparar el siguiente ciclo de manejo", [
           {
-            year: 10,
-            label: "Pensar en el siguiente ciclo",
-            actions: [
-              "Evaluar estructura del sistema y necesidades de renovación.",
-              "Comparar monitoreos sucesivos; actualizar el plan con el productor.",
-            ],
+            title: "Actualizar el plan con los registros de la finca",
+            reason:
+              kind === "current"
+                ? "Compara los registros de suelo, agua y labores de cada sector. Acuerda con la familia qué prácticas mantener y qué problemas necesitan un nuevo plan de manejo."
+                : kind === "agroforestry"
+                  ? "Actualiza el croquis de árboles y coberturas. Revisa dónde las copas se cerraron y dónde sigue el suelo descubierto. Acuerda qué conservar y cómo ajustar la combinación de plantas."
+                  : "Revisa qué sectores se recuperaron y dónde persisten fallas de establecimiento. Acuerda con el técnico los trabajos pendientes y el orden de los próximos sectores.",
+            evidence: "wcs",
           },
-        ]
-      : []),
-  ];
+          repeatSoil,
+        ]),
+      );
+    }
+    return stages;
+  };
   const agroActions = [
     shadeAction,
     coverAction,
@@ -258,20 +377,7 @@ export function evaluateScenarios(
         healthAction,
         calendarAction,
       ],
-      stages: [
-        {
-          year: 0,
-          label: "Registrar el presente",
-          actions: ["Guardar prácticas y observaciones del lote."],
-        },
-        {
-          year: horizon,
-          label: "Comparar observaciones",
-          actions: [
-            "Medir de nuevo los mismos indicadores. El manejo actual no implica estabilidad del suelo.",
-          ],
-        },
-      ],
+      stages: stagePlan("current"),
       effects: [
         { title: "Suelo", text: "Ver cómo cambia con el tiempo" },
         { title: "Agua", text: "Observar el agua después de llover" },
