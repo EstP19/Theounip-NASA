@@ -141,6 +141,17 @@ test("las rutas con frutos muestran cosecha al inicio y cada tarea enlaza una fu
   );
 });
 
+test("las tres rutas usan la cobertura declarada y anteponen el drenaje si quedan charcos", () => {
+  const farm = { ...DEFAULT_FARM, priority: "renovation" as const, cover: 20, coverKnown: true };
+  for (const scenario of evaluateScenarios(farm, 3).scenarios) {
+    assert.match(scenario.stages[0].tasks[0].title, /Delimitar los sectores/);
+    assert.ok(scenario.stages[1].tasks.some((task) => /20%.*tramos desnudos/.test(task.reason)));
+  }
+  for (const scenario of evaluateScenarios({ ...farm, drainage: "waterlogged" }, 3).scenarios) {
+    assert.equal(scenario.stages[0].tasks[0].title, "Evaluar el encharcamiento primero");
+  }
+});
+
 test("los faltantes se actualizan al ingresar suelo con trazabilidad", () => {
   const result = evaluateScenarios(
     {

@@ -115,8 +115,8 @@ export function evaluateScenarios(
         ? "Explorar cobertura del suelo"
         : "Manejar la cobertura existente",
     reason: coverKnown
-      ? `La cobertura que indicaste equivale aproximadamente a ${farm.cover}%. Revisa si las hojas y plantas protegen el suelo sin dificultar el cuidado del cacao.`
-      : "Observa si el suelo está descubierto o protegido por hojas y plantas. Con esa información podrás elegir mejor cómo cuidarlo.",
+      ? `Indicaste cerca de ${farm.cover}% de suelo cubierto. ${farm.cover < 40 ? "Marca primero los tramos desnudos o con señales de erosión y conserva la cobertura que ya los bordea." : "Revisa si quedan claros entre las hileras y conserva la cobertura donde protege el suelo y permite el paso."}`
+      : "En el recorrido, distingue los tramos desnudos de los que están protegidos por hojas o plantas. Anota dónde falta cobertura antes de decidir cómo manejarla.",
     evidence: "wcs",
   };
   const healthAction: PlanAction = {
@@ -188,7 +188,7 @@ export function evaluateScenarios(
     ...(basis.phSource === "soilgrids" ? { supportingEvidence: ["soilgrids"] } : {}),
     reason:
       farm.soilOrigin === "lab" && farm.ph !== null
-        ? `Lleva el informe con el pH de ${farm.ph} y confirma la fecha, profundidad y unidades. Revisa con el técnico el aluminio, calcio, magnesio y la textura antes de decidir el encalado.`
+        ? `Lleva el informe con el pH de ${farm.ph}${farm.organicMatter !== null ? ` y la materia orgánica de ${farm.organicMatter}%` : ""}. Confirma la fecha, profundidad y unidades. Revisa con el técnico el aluminio, calcio, magnesio y la textura antes de decidir el encalado.`
         : `${basis.phSource === "soilgrids" ? `Usa el pH estimado de ${basis.ph} a ${soil!.depth} para orientar la visita. ` : ""}Separa zonas de suelo, pendiente y manejo parecidos. Reúne submuestras de cada zona, etiqueta lote, fecha y profundidad, y llévalas al laboratorio.`,
   };
   const localSoilReview: PlanAction = {
@@ -227,6 +227,13 @@ export function evaluateScenarios(
     reason:
       "Después de llover, recorre los sectores húmedos. Fíjate dónde tarda en secarse el cultivo y dónde las copas se juntan. Anota esos lugares para orientar la revisión de sombra y sanidad.",
     evidence: "fundesyram",
+  };
+  const renewalSurvey: PlanAction = {
+    title: "Delimitar los sectores que necesitan atención",
+    reason: existingCacao
+      ? "En un croquis, señala plantas productivas, faltantes y tramos con problemas. Lleva ese registro a la visita técnica para definir dónde empezar los ajustes."
+      : "Dibuja los sectores según el uso anterior, la pendiente y las zonas que conservan vegetación. Señala cuáles conviene recuperar primero con asesoría local.",
+    evidence: "wcs",
   };
   const yearlyWork: Record<Scenario["id"], PlanAction> = {
     current: {
@@ -280,10 +287,10 @@ export function evaluateScenarios(
   };
   const stagePlan = (kind: Scenario["id"]): Stage[] => {
     const includesCacao = existingCacao || kind !== "current";
-    const initial =
-      waterlogged || farm.priority === "water"
-        ? [waterAction, sampling, cropRecord]
-        : [sampling, cropRecord, waterAction];
+    const initial = [sampling, cropRecord];
+    if (farm.priority === "renovation") initial.unshift(renewalSurvey);
+    if (waterlogged || farm.priority === "water") initial.unshift(waterAction);
+    else initial.push(waterAction);
     if (existingCacao) initial.push(healthAction);
     if (affectedFruit) initial.push(describeDamage);
     if (hasFruit) initial.push(harvest);
@@ -292,6 +299,7 @@ export function evaluateScenarios(
     const firstYear = [yearlyWork[kind]];
     if (waterlogged && kind !== "current") firstYear.unshift(waterAction);
     if (existingCacao) firstYear.push(shadeAction);
+    firstYear.push(coverAction);
     if (denseShade || waterlogged) firstYear.push(wetShadeReview);
     if (kind !== "current") firstYear.push(speciesReview);
     firstYear.push(localSoilReview);
