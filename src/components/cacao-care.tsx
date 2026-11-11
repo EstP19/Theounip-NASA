@@ -174,14 +174,14 @@ export function CacaoCare({
       {hasCrop && farm.fruiting === "yes" && (
         <section className="panel cacao-guide">
           <span className="eyebrow">DEL ÁRBOL AL GRANO</span>
-          <h2>Cosecha y registro de la finca</h2>
+          <h2>Cosecha de cacao y registro de la finca</h2>
           <p>Consulta estas fichas cuando estés preparando una cosecha.</p>
           <details className="precise-values" open>
-            <summary>De la mazorca al grano seco</summary>
+            <summary>De la cosecha de cacao al grano seco</summary>
             <ol>
               <li>
-                Cosecha mazorcas maduras y sanas con herramientas limpias, cuidando el sitio donde
-                nacen las flores.
+                Recoge los frutos maduros y sanos del cacao con herramientas limpias. Cuida los
+                puntos donde nacen las flores.
               </li>
               <li>
                 Registra el inicio y el seguimiento de la fermentación según el protocolo de tu

@@ -24,14 +24,17 @@ export const MATERIALS = {
 } as const;
 
 export const DISEASES = {
-  moniliasis: { name: "Moniliasis", observation: "Manchas y polvo blanquecino sobre mazorcas." },
+  moniliasis: {
+    name: "Moniliasis",
+    observation: "Manchas y polvo blanquecino sobre el fruto de cacao.",
+  },
   witchesBroom: {
     name: "Escoba de bruja",
     observation: "Brotes agrupados o deformados, con aspecto de escoba.",
   },
   blackPod: {
     name: "Mazorca negra",
-    observation: "Manchas pardas u oscuras que avanzan sobre la mazorca.",
+    observation: "Manchas pardas u oscuras que avanzan sobre el fruto de cacao.",
   },
 } as const;
 

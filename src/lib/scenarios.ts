@@ -228,7 +228,7 @@ export function evaluateScenarios(
     title: hasFruit ? "Cuidar la próxima cosecha" : "Preparar el beneficio cuando haya cosecha",
     basedOn: hasFruit ? "Indicaste que el cacao ya tiene frutos." : undefined,
     reason:
-      "Escoge mazorcas maduras y sanas y protege los puntos donde nacen las flores. Registra el inicio de fermentación, seca el grano de manera uniforme y mide su humedad antes de empacarlo.",
+      "Escoge los frutos maduros y sanos del cacao y protege los puntos donde nacen las flores. Registra el inicio de la fermentación, seca el grano de manera uniforme y mide su humedad antes de empacarlo.",
     evidence: "cosecha",
   };
   const repeatSoil: PlanAction = {
@@ -507,7 +507,7 @@ export function evaluateScenarios(
           : affectedFruit
             ? "Anotar y mostrar los frutos afectados"
             : hasFruit
-              ? "Separar las mazorcas maduras y sanas"
+              ? "Separar los frutos de cacao maduros y sanos"
               : farm.fruiting === "no"
                 ? "Revisar hojas, tallos y brotes"
                 : "Revisar las plantas y anotar si ya hay frutos",

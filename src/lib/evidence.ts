@@ -59,7 +59,7 @@ export const EVIDENCE: Evidence[] = [
     shortName: "Nacional de Chocolates",
     section: "Páginas 9–10, 19–22 y 24–26, recolección, beneficio y almacenamiento",
     detail:
-      "Orienta la selección de mazorcas maduras, el seguimiento de la fermentación, el secado uniforme y la protección del grano durante el almacenamiento.",
+      "Orienta la selección de frutos maduros de cacao, el seguimiento de la fermentación, el secado uniforme y la protección del grano durante el almacenamiento.",
     url: "https://repository.agrosavia.co/server/api/core/bitstreams/0574b597-1adc-4e02-8cd8-8a9b65b82b43/content#page=9",
   },
   {
@@ -105,7 +105,7 @@ export const EVIDENCE: Evidence[] = [
     organization: "PlantVillage · Penn State",
     section: "Common Pests and Diseases, fichas de moniliasis, mazorca negra y escoba de bruja",
     detail:
-      "Reúne ejemplos de señales en mazorcas y brotes que sirven como referencia para describir observaciones de campo.",
+      "Reúne ejemplos de señales en frutos de cacao y brotes que sirven como referencia para describir observaciones de campo.",
     url: "https://plantvillage.psu.edu/topics/cocoa-cacao/infos",
   },
   {

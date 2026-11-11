@@ -39,7 +39,7 @@ export function createGuide(
   );
   const followSignal = {
     moniliasis:
-      "Registra en qué mazorcas aparece polvo claro y si hay frutos cercanos con manchas.",
+      "Registra en qué frutos de cacao aparece polvo claro y si hay otros frutos cercanos con manchas.",
     witchesBroom: "Marca los árboles con brotes deformados para revisar las ramas con el técnico.",
     blackPod:
       "Anota si las manchas oscuras avanzan y si los frutos afectados se concentran en sitios húmedos.",
@@ -52,7 +52,7 @@ export function createGuide(
     reason: `Anota la fecha y el sector. ${
       observations.length
         ? observations.map((id) => followSignal[id]).join(" ")
-        : "Revisa brotes y ramas. Si hay frutos, observa también las mazorcas."
+        : "Revisa los brotes, las ramas y los frutos de cacao que encuentres."
     } Lleva fotos y registros a un técnico para confirmar la causa y decidir cómo intervenir.`,
     evidence: "ica",
     supportingEvidence: ["plantvillage"],
