@@ -2,7 +2,8 @@
 
 import { ArrowUpRight, Download, Sprout } from "lucide-react";
 import { EVIDENCE } from "@/lib/evidence";
-import type { EvidenceId, FarmInput } from "@/lib/types";
+import { DISEASES } from "@/lib/plot-options";
+import type { Disease, EvidenceId, FarmInput, GuidePath } from "@/lib/types";
 
 function GuideSource({ id }: { id: EvidenceId }) {
   const source = EVIDENCE.find((item) => item.id === id);
@@ -48,12 +49,16 @@ export function SoilGuide() {
 
 export function CacaoCare({
   farm,
+  path,
   onChange,
 }: {
   farm: FarmInput;
+  path: GuidePath | null;
   onChange: (farm: FarmInput) => void;
 }) {
-  const hasCrop = farm.state === "young" || farm.state === "renewal";
+  const hasCrop = farm.state !== "pasture" && farm.state !== "forest";
+  const showDiseaseGuide =
+    hasCrop && (path === "health" || farm.goals?.includes("health") || farm.symptoms === "yes");
   return (
     <div className="wizard-grid cacao-care-grid">
       <section className="panel cacao-guide">
@@ -74,7 +79,16 @@ export function CacaoCare({
               id="fruiting"
               value={farm.fruiting ?? "unknown"}
               onChange={(event) =>
-                onChange({ ...farm, fruiting: event.target.value as FarmInput["fruiting"] })
+                onChange({
+                  ...farm,
+                  fruiting: event.target.value as FarmInput["fruiting"],
+                  ...(event.target.value === "no"
+                    ? {
+                        symptoms: "unknown",
+                        diseases: farm.diseases?.filter((id) => id === "witchesBroom"),
+                      }
+                    : {}),
+                })
               }
             >
               <option value="unknown">No lo sé todavía</option>
@@ -99,6 +113,37 @@ export function CacaoCare({
                 </select>
               </>
             ) : null}
+            {showDiseaseGuide && (
+              <fieldset className="decision-options disease-options">
+                <legend>¿Qué señales has observado?</legend>
+                <p>Marca las que se parezcan a lo que ves. Un técnico puede confirmar la causa.</p>
+                {(Object.entries(DISEASES) as [Disease, (typeof DISEASES)[Disease]][])
+                  .filter(([id]) => id === "witchesBroom" || farm.fruiting !== "no")
+                  .map(([id, { name, observation }]) => (
+                    <label key={id}>
+                      <input
+                        type="checkbox"
+                        checked={farm.diseases?.includes(id) ?? false}
+                        onChange={(event) => {
+                          const diseases = farm.diseases ?? [];
+                          onChange({
+                            ...farm,
+                            diseases: event.target.checked
+                              ? [...diseases, id]
+                              : diseases.filter((item) => item !== id),
+                          });
+                        }}
+                      />
+                      <span>
+                        <strong>{name}</strong>
+                        <small>{observation}</small>
+                      </span>
+                    </label>
+                  ))}
+                <GuideSource id="ica" />
+                <GuideSource id="plantvillage" />
+              </fieldset>
+            )}
           </>
         ) : (
           <p>
@@ -126,48 +171,50 @@ export function CacaoCare({
           <GuideSource id="icco" />
         </details>
       </section>
-      <section className="panel cacao-guide">
-        <span className="eyebrow">DEL ÁRBOL AL GRANO</span>
-        <h2>Cosecha y registro del lote</h2>
-        <p>Consulta estas fichas cuando estés preparando una cosecha.</p>
-        <details className="precise-values" open>
-          <summary>De la mazorca al grano seco</summary>
-          <ol>
-            <li>
-              Cosecha mazorcas maduras y sanas con herramientas limpias, cuidando el sitio donde
-              nacen las flores.
-            </li>
-            <li>
-              Registra el inicio y el seguimiento de la fermentación según el protocolo de tu finca
-              o asociación.
-            </li>
-            <li>
-              Seca el grano de forma uniforme. Mide la humedad antes de empacar y protégelo de la
-              lluvia y de olores fuertes.
-            </li>
-            <li>
-              Selecciona el grano y guárdalo bajo techo, en sacos rotulados y elevados del piso.
-            </li>
-          </ol>
-          <GuideSource id="cosecha" />
-        </details>
-        <details className="precise-values">
-          <summary>Registrar el origen y las labores</summary>
-          <p>
-            Asigna un código al lote y anota su origen, la fecha y la labor realizada. Conserva el
-            código durante la cosecha y el beneficio. En la venta registra fecha, peso del grano
-            seco y comprobante.
-          </p>
-          <p>
-            El punto del mapa ayuda a ubicar la finca. Guarda los linderos y documentos del predio
-            por separado cuando necesites acreditar su origen.
-          </p>
-          <GuideSource id="trazabilidad" />
-          <a className="text-button" href="/registro-lote-cacao.csv" download>
-            <Download size={15} aria-hidden="true" /> Descargar formato de registro
-          </a>
-        </details>
-      </section>
+      {hasCrop && farm.fruiting === "yes" && (
+        <section className="panel cacao-guide">
+          <span className="eyebrow">DEL ÁRBOL AL GRANO</span>
+          <h2>Cosecha y registro de la parcela</h2>
+          <p>Consulta estas fichas cuando estés preparando una cosecha.</p>
+          <details className="precise-values" open>
+            <summary>De la mazorca al grano seco</summary>
+            <ol>
+              <li>
+                Cosecha mazorcas maduras y sanas con herramientas limpias, cuidando el sitio donde
+                nacen las flores.
+              </li>
+              <li>
+                Registra el inicio y el seguimiento de la fermentación según el protocolo de tu
+                finca o asociación.
+              </li>
+              <li>
+                Seca el grano de forma uniforme. Mide la humedad antes de empacar y protégelo de la
+                lluvia y de olores fuertes.
+              </li>
+              <li>
+                Selecciona el grano y guárdalo bajo techo, en sacos rotulados y elevados del piso.
+              </li>
+            </ol>
+            <GuideSource id="cosecha" />
+          </details>
+          <details className="precise-values">
+            <summary>Registrar el origen y las labores</summary>
+            <p>
+              Asigna un código al lote y anota su origen, la fecha y la labor realizada. Conserva el
+              código durante la cosecha y el beneficio. En la venta registra fecha, peso del grano
+              seco y comprobante.
+            </p>
+            <p>
+              El punto del mapa ayuda a ubicar la finca. Guarda los linderos y documentos del predio
+              por separado cuando necesites acreditar su origen.
+            </p>
+            <GuideSource id="trazabilidad" />
+            <a className="text-button" href="/registro-lote-cacao.csv" download>
+              <Download size={15} aria-hidden="true" /> Descargar formato de registro
+            </a>
+          </details>
+        </section>
+      )}
     </div>
   );
 }

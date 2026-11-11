@@ -3901,3 +3901,178 @@ label.field-label {
     grid-template-columns: 1fr;
   }
 }
+ /* Flujo de la parcela y guía de manejo */
+.project-intro {
+  margin-bottom: 22px;
+  max-width: none;
+}
+.project-intro p {
+  max-width: 80ch;
+  color: var(--ink);
+}
+.environment-heading {
+  margin: 28px 0 14px;
+}
+.environmental-panels {
+  align-items: start;
+}
+.environmental-panels .soil-context-panel {
+  margin: 0;
+}
+.plot-preview {
+  margin-bottom: 22px;
+}
+.plot-preview dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0 0;
+}
+.plot-preview dl div {
+  padding: 10px 12px;
+  background: var(--soft);
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.plot-preview dt,
+.dose-calculator legend {
+  font-weight: 700;
+}
+.plot-preview dd {
+  margin: 2px 0 0;
+}
+.decision-options {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.decision-options legend {
+  padding: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--dark);
+}
+.decision-options > p {
+  margin: 5px 0 12px;
+}
+.decision-options label,
+.inline-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.decision-options input,
+.inline-check input {
+  flex: none;
+  margin: 4px 0 0;
+  accent-color: var(--green);
+}
+.decision-options label + label,
+.inline-check,
+.disease-options {
+  margin-top: 9px;
+}
+.decision-options label:has(input:checked) {
+  background: var(--soft);
+  border-color: var(--green);
+}
+.decision-options label:has(input:disabled) {
+  background: var(--bg);
+  color: #5c6960;
+  cursor: default;
+}
+.decision-options small {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.82rem;
+}
+.guide-paths {
+  margin-bottom: 20px;
+}
+.guide-path-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.guide-path-grid label + label {
+  margin-top: 0;
+}
+.dose-calculator fieldset {
+  padding: 8px 12px 12px;
+  margin: 14px 0 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-width: 0;
+}
+.dose-result,
+.guide-dose-summary,
+.guide-notes {
+  margin-top: 12px;
+  background: var(--soft);
+  padding: 10px 12px;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.guide-notes p,
+.guide-unavailable p {
+  margin-top: 5px;
+}
+.guide-unavailable a {
+  text-decoration: underline;
+}
+.farm-guide .timeline-stage {
+  grid-template-columns: minmax(83px, auto) minmax(0, 1fr);
+}
+.farm-guide .timeline-stage::before {
+  left: 82px;
+}
+.farm-guide .timeline-date {
+  font-size: 0.7rem;
+}
+.farm-guide .timeline-stage h3 {
+  margin-bottom: 10px;
+}
+.farm-guide .timeline-tasks {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+@media (max-width: 760px) {
+  .plot-preview dl,
+  .guide-path-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .farm-guide .timeline-stage {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .farm-guide .timeline-stage::before,
+  .farm-guide .timeline-date i {
+    display: none;
+  }
+}
+@media print {
+  .save-section {
+    display: none !important;
+  }
+  .farm-guide {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+  .farm-guide .timeline-stage {
+    display: block;
+  }
+  .farm-guide .timeline-stage::before,
+  .farm-guide .timeline-date i {
+    display: none;
+  }
+  .farm-guide .timeline-tasks li,
+  .farm-guide .timeline-checkpoint {
+    break-inside: avoid;
+  }
+}

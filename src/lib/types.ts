@@ -12,11 +12,33 @@ export type SoilContext = {
   organicCarbon: SoilEstimate | null;
   warnings: string[];
 };
-export type PlotState = "young" | "renewal" | "pasture" | "forest";
+export type PlotState = "young" | "established" | "renewal" | "pasture" | "forest";
 export type Drainage = "unknown" | "good" | "waterlogged";
 export type Priority = "soil" | "water" | "renovation";
 export type Species = "inga" | "erythrina" | "canavalia" | "centrosema";
 export type Horizon = 3 | 5 | 10;
+export type GuidePath = "current" | "recovery" | "health";
+export type Goal = "production" | "soil" | "health" | "diversity";
+export type Disease = "moniliasis" | "witchesBroom" | "blackPod";
+export type LabValues = Partial<
+  Record<
+    | "phosphorus"
+    | "potassium"
+    | "organicCarbon"
+    | "aluminium"
+    | "aluminiumSaturation"
+    | "calcium"
+    | "magnesium"
+    | "cice",
+    number | null
+  >
+> & { texture?: string; potassiumUnit?: "cmolc/kg" | "mg/kg" };
+export type DoseInputs = Partial<
+  Record<
+    "limeEquivalent" | "limeEfficiency" | "nutrientRequirement" | "nutrientContent" | "area",
+    number | null
+  >
+> & { nutrient?: "N" | "P₂O₅" | "K₂O" };
 
 export type FarmInput = {
   name: string;
@@ -35,6 +57,15 @@ export type FarmInput = {
   symptoms: "unknown" | "no" | "yes";
   fruiting?: "unknown" | "no" | "yes";
   species: Species[];
+  terrain?: "flat" | "slope" | "unknown";
+  nearWater?: boolean;
+  cropSystem?: "agroforestry" | "monoculture" | "chagra" | "unknown";
+  cacaoMaterial?: "seed" | "graft" | "mixed" | "unknown";
+  cacaoName?: string;
+  goals?: Goal[];
+  diseases?: Disease[];
+  lab?: LabValues;
+  doses?: DoseInputs;
 };
 
 export type MonthClimate = {

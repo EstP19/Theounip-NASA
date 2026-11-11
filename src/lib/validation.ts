@@ -1,4 +1,5 @@
 import type { Coordinates, FarmInput } from "./types.ts";
+import { DISEASES, GOALS, MATERIALS, SYSTEMS, TERRAIN } from "./plot-options.ts";
 
 export const DEMO_POINT: Coordinates = { lat: 0.343, lon: -76.91 };
 export const DEFAULT_FARM: FarmInput = {
@@ -37,6 +38,17 @@ export function inPilotRegion(point: Coordinates): boolean {
   return point.lat >= -1.6 && point.lat <= 1.8 && point.lon >= -77.9 && point.lon <= -73.9;
 }
 
+export function hasRequiredLabValues(farm: FarmInput) {
+  // Los borradores anteriores al formulario ampliado pueden conservar sus dos datos.
+  if (farm.soilOrigin !== "lab" || farm.lab === undefined) return true;
+  return (
+    farm.ph !== null &&
+    (farm.organicMatter !== null || farm.lab.organicCarbon != null) &&
+    farm.lab.phosphorus != null &&
+    farm.lab.potassium != null
+  );
+}
+
 export function isFarmInput(value: unknown): value is FarmInput {
   if (!value || typeof value !== "object") return false;
   const v = value as Record<string, unknown>;
@@ -46,7 +58,7 @@ export function isFarmInput(value: unknown): value is FarmInput {
   return (
     typeof v.name === "string" &&
     v.name.length <= 100 &&
-    ["young", "renewal", "pasture", "forest"].includes(v.state as string) &&
+    ["young", "established", "renewal", "pasture", "forest"].includes(v.state as string) &&
     percent(v.shade) &&
     percent(v.cover) &&
     (v.shadeKnown === undefined || typeof v.shadeKnown === "boolean") &&
@@ -65,6 +77,57 @@ export function isFarmInput(value: unknown): value is FarmInput {
     Array.isArray(v.species) &&
     v.species.length <= 4 &&
     new Set(v.species).size === v.species.length &&
-    v.species.every((s) => ["inga", "erythrina", "canavalia", "centrosema"].includes(s))
+    v.species.every((s) => ["inga", "erythrina", "canavalia", "centrosema"].includes(s)) &&
+    optionalChoice(v.terrain, Object.keys(TERRAIN)) &&
+    optionalChoice(v.cropSystem, Object.keys(SYSTEMS)) &&
+    optionalChoice(v.cacaoMaterial, Object.keys(MATERIALS)) &&
+    optionalText(v.cacaoName, 60) &&
+    (v.nearWater === undefined || typeof v.nearWater === "boolean") &&
+    optionalChoices(v.goals, Object.keys(GOALS)) &&
+    optionalChoices(v.diseases, Object.keys(DISEASES)) &&
+    optionalObject(
+      v.lab,
+      (lab) =>
+        [
+          "phosphorus",
+          "potassium",
+          "organicCarbon",
+          "aluminium",
+          "calcium",
+          "magnesium",
+          "cice",
+        ].every((key) => lab[key] === undefined || nullable(lab[key], 0, 1_000_000)) &&
+        (lab.aluminiumSaturation === undefined || nullable(lab.aluminiumSaturation, 0, 100)) &&
+        optionalText(lab.texture, 50) &&
+        optionalChoice(lab.potassiumUnit, ["cmolc/kg", "mg/kg"]),
+    ) &&
+    optionalObject(
+      v.doses,
+      (doses) =>
+        ["limeEquivalent", "nutrientRequirement", "area"].every(
+          (key) => doses[key] === undefined || nullable(doses[key], 0, 1_000_000),
+        ) &&
+        ["limeEfficiency", "nutrientContent"].every(
+          (key) => doses[key] === undefined || nullable(doses[key], 0, 100),
+        ) &&
+        optionalChoice(doses.nutrient, ["N", "P₂O₅", "K₂O"]),
+    )
   );
 }
+
+const optionalChoice = (value: unknown, options: string[]) =>
+  value === undefined || (typeof value === "string" && options.includes(value));
+const optionalText = (value: unknown, length: number) =>
+  value === undefined || (typeof value === "string" && value.length <= length);
+const optionalChoices = (value: unknown, options: string[]) =>
+  value === undefined ||
+  (Array.isArray(value) &&
+    value.length <= options.length &&
+    new Set(value).size === value.length &&
+    value.every((item) => options.includes(item)));
+const optionalObject = (value: unknown, validate: (fields: Record<string, unknown>) => boolean) =>
+  value === undefined ||
+  (!!value &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    validate(value as Record<string, unknown>));

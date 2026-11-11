@@ -1,5 +1,11 @@
 import { evaluateScenarios, ENGINE_VERSION } from "@/lib/scenarios";
-import { inPilotRegion, isFarmInput, parseCoordinates } from "@/lib/validation";
+import { createGuide, isGuidePath, pathAvailable } from "@/lib/guide";
+import {
+  hasRequiredLabValues,
+  inPilotRegion,
+  isFarmInput,
+  parseCoordinates,
+} from "@/lib/validation";
 import { querySoilContext } from "@/lib/soilgrids";
 import type { Horizon, SoilContext } from "@/lib/types";
 
@@ -12,9 +18,15 @@ export async function POST(request: Request) {
     return Response.json({ error: "La entrada es demasiado grande." }, { status: 413 });
   try {
     const body = JSON.parse(text);
-    if (!isFarmInput(body.farm) || ![3, 5, 10].includes(body.horizon))
+    const path = body.path;
+    if (
+      !isFarmInput(body.farm) ||
+      (path === undefined
+        ? ![3, 5, 10].includes(body.horizon)
+        : !isGuidePath(path) || !pathAvailable(body.farm, path) || !hasRequiredLabValues(body.farm))
+    )
       return Response.json(
-        { error: "Revisa los datos de la parcela y el horizonte." },
+        { error: "Revisa los datos de la parcela y el camino elegido." },
         { status: 400 },
       );
     let soil: SoilContext | null = null;
@@ -35,7 +47,9 @@ export async function POST(request: Request) {
       engineVersion: ENGINE_VERSION,
       soil,
       soilError,
-      ...evaluateScenarios(body.farm, body.horizon as Horizon, null, soil),
+      ...(isGuidePath(path)
+        ? { guide: createGuide(body.farm, path, null, soil) }
+        : evaluateScenarios(body.farm, body.horizon as Horizon, null, soil)),
     });
   } catch {
     return Response.json({ error: "Envía un objeto JSON válido." }, { status: 400 });

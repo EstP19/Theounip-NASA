@@ -1,7 +1,9 @@
 "use client";
 
 import { SlidersHorizontal, FlaskConical, ArrowUpRight } from "lucide-react";
-import type { FarmInput } from "@/lib/types";
+import type { FarmInput, LabValues } from "@/lib/types";
+import { MATERIALS, SYSTEMS, TERRAIN } from "@/lib/plot-options";
+import { DoseCalculator } from "./dose-calculator";
 
 type Props = { farm: FarmInput; onChange: (farm: FarmInput) => void };
 
@@ -13,7 +15,7 @@ export function FarmFields({ farm, onChange }: Props) {
       <div className="section-heading">
         <div>
           <span className="eyebrow">02 / TU PARCELA</span>
-          <h2>Lo que ves en tu finca</h2>
+          <h2>Lo que ves en tu parcela</h2>
         </div>
         <SlidersHorizontal size={19} className="muted" />
       </div>
@@ -28,10 +30,10 @@ export function FarmFields({ farm, onChange }: Props) {
         value={farm.name}
         maxLength={100}
         onChange={(e) => update("name", e.target.value)}
-        placeholder="Nombre o referencia del lote"
+        placeholder="Nombre o referencia de la parcela"
       />
       <label className="field-label" htmlFor="plot-state">
-        Estado del lote
+        Estado de la parcela
       </label>
       <select
         id="plot-state"
@@ -39,18 +41,19 @@ export function FarmFields({ farm, onChange }: Props) {
         onChange={(e) => update("state", e.target.value as FarmInput["state"])}
       >
         <option value="young">Cacao joven</option>
+        <option value="established">Cacao establecido o en producción</option>
         <option value="renewal">Cacao para renovar</option>
         <option value="pasture">Potrero u otro terreno</option>
         <option value="forest">Bosque natural</option>
       </select>
       <fieldset className="friendly-options">
-        <legend>¿Cuánta sombra ves en el cultivo?</legend>
+        <legend>¿Cuánta sombra observas en la parcela?</legend>
         <p>Piensa en la sombra que dan los árboles durante el día.</p>
         <div>
           {[
-            { label: "Poca sombra", value: 15 },
-            { label: "Algo de sombra", value: 40 },
-            { label: "Mucha sombra", value: 75 },
+            { label: "Poca o ninguna sombra", value: 15 },
+            { label: "Sombra media", value: 40 },
+            { label: "Sombra densa", value: 75 },
           ].map((item) => (
             <button
               key={item.label}
@@ -78,13 +81,13 @@ export function FarmFields({ farm, onChange }: Props) {
         </div>
       </fieldset>
       <fieldset className="friendly-options">
-        <legend>¿Cómo se ve el suelo entre las plantas?</legend>
+        <legend>¿Cómo se ve el suelo de la parcela?</legend>
         <p>Puede estar descubierto o protegido por hojas, hierba y otras plantas.</p>
         <div>
           {[
-            { label: "Casi descubierto", value: 10 },
-            { label: "Una parte cubierta", value: 50 },
-            { label: "Casi todo cubierto", value: 90 },
+            { label: "Descubierto", value: 10 },
+            { label: "Medianamente cubierto", value: 50 },
+            { label: "Casi todo protegido", value: 90 },
           ].map((item) => (
             <button
               key={item.label}
@@ -157,29 +160,85 @@ export function FarmFields({ farm, onChange }: Props) {
           </div>
         </div>
       </details>
+      <label className="field-label" htmlFor="terrain">
+        ¿Cómo es el terreno?
+      </label>
+      <select
+        id="terrain"
+        value={farm.terrain ?? "unknown"}
+        onChange={(event) => update("terrain", event.target.value as FarmInput["terrain"])}
+      >
+        {Object.entries(TERRAIN).map(([value, label]) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
+      </select>
+      <label className="inline-check">
+        <input
+          type="checkbox"
+          checked={farm.nearWater ?? false}
+          onChange={(event) => update("nearWater", event.target.checked)}
+        />
+        Está cerca de un río, quebrada o zona inundable
+      </label>
+      {farm.state !== "pasture" && farm.state !== "forest" && (
+        <>
+          <label className="field-label" htmlFor="crop-system">
+            Sistema de cultivo
+          </label>
+          <select
+            id="crop-system"
+            value={farm.cropSystem ?? "unknown"}
+            onChange={(event) =>
+              update("cropSystem", event.target.value as FarmInput["cropSystem"])
+            }
+          >
+            {Object.entries(SYSTEMS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <label className="field-label" htmlFor="cacao-material">
+            Variedad o tipo de cacao
+          </label>
+          <select
+            id="cacao-material"
+            value={farm.cacaoMaterial ?? "unknown"}
+            onChange={(event) =>
+              update("cacaoMaterial", event.target.value as FarmInput["cacaoMaterial"])
+            }
+          >
+            {Object.entries(MATERIALS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <label className="field-label" htmlFor="cacao-name">
+            Variedad o clon, si lo conoces
+          </label>
+          <input
+            id="cacao-name"
+            value={farm.cacaoName ?? ""}
+            maxLength={60}
+            placeholder="Ej. CCN-51 o variedad local"
+            onChange={(event) => update("cacaoName", event.target.value)}
+          />
+        </>
+      )}
       <label className="field-label" htmlFor="drainage">
-        ¿El agua se queda empozada cuando llueve?
+        ¿Quedan charcos después de llover? (opcional)
       </label>
       <select
         id="drainage"
         value={farm.drainage}
-        onChange={(e) => update("drainage", e.target.value as FarmInput["drainage"])}
+        onChange={(event) => update("drainage", event.target.value as FarmInput["drainage"])}
       >
         <option value="unknown">No lo sé todavía</option>
         <option value="good">No, el agua sale</option>
         <option value="waterlogged">Sí, quedan charcos</option>
-      </select>
-      <label className="field-label" htmlFor="priority">
-        ¿Qué te gustaría mejorar primero?
-      </label>
-      <select
-        id="priority"
-        value={farm.priority}
-        onChange={(e) => update("priority", e.target.value as FarmInput["priority"])}
-      >
-        <option value="soil">Cuidar el suelo</option>
-        <option value="water">El manejo del agua</option>
-        <option value="renovation">Renovar mi cultivo</option>
       </select>
       <p className="field-help">
         Tus respuestas son aproximadas. Podrás cambiarlas cuando conozcas mejor el cultivo.
@@ -191,6 +250,15 @@ export function FarmFields({ farm, onChange }: Props) {
 export function SoilFields({ farm, onChange, onEvidence }: Props & { onEvidence: () => void }) {
   const updateNumber = (key: "ph" | "organicMatter", text: string) =>
     onChange({ ...farm, [key]: text === "" ? null : Number(text) });
+  const setLab = <K extends keyof LabValues>(key: K, value: LabValues[K]) =>
+    onChange({ ...farm, lab: { ...farm.lab, [key]: value } });
+  const labFields = [
+    ["aluminium", "Aluminio intercambiable", "cmolc/kg"],
+    ["aluminiumSaturation", "Saturación de aluminio", "%"],
+    ["calcium", "Calcio", "cmolc/kg"],
+    ["magnesium", "Magnesio", "cmolc/kg"],
+    ["cice", "Capacidad de intercambio catiónico efectiva (CICE)", "cmolc/kg"],
+  ] as const;
   return (
     <section className="panel soil-panel">
       <div className="section-heading">
@@ -201,8 +269,8 @@ export function SoilFields({ farm, onChange, onEvidence }: Props & { onEvidence:
         <FlaskConical size={22} className="muted" />
       </div>
       <p className="friendly-intro">
-        Si tienes un resultado, puedes copiar sus datos. Si todavía no lo tienes, está bien: puedes
-        continuar.
+        Copia los valores y las unidades de tu informe. Si tienes solo algunos datos, ingresa los
+        que conoces.
       </p>
       <label className="field-label" htmlFor="soil-origin">
         Elige una opción
@@ -214,13 +282,15 @@ export function SoilFields({ farm, onChange, onEvidence }: Props & { onEvidence:
           onChange({
             ...farm,
             soilOrigin: e.target.value as FarmInput["soilOrigin"],
-            ...(e.target.value === "none" ? { ph: null, organicMatter: null } : {}),
+            ...(e.target.value === "none"
+              ? { ph: null, organicMatter: null, lab: undefined, doses: undefined }
+              : { lab: farm.lab ?? {} }),
           })
         }
       >
         <option value="none">No tengo análisis</option>
-        <option value="lab">Sí, tengo un análisis</option>
-        <option value="declared">Tengo algunos datos</option>
+        <option value="lab">Sí, tengo el análisis completo</option>
+        <option value="declared">Tengo solo algunos datos</option>
       </select>
       {farm.soilOrigin === "none" ? (
         <div className="soil-skip-note">
@@ -230,7 +300,7 @@ export function SoilFields({ farm, onChange, onEvidence }: Props & { onEvidence:
           <h3>No necesitas tenerlo todo para empezar.</h3>
           <p>
             Usaremos lo que ya nos contaste y las estimaciones del mapa cuando estén disponibles.
-            Una muestra de tu finca te ayudará a conocer mejor el suelo.
+            Una muestra de tu parcela te ayudará a conocer mejor el suelo.
           </p>
         </div>
       ) : (
@@ -268,11 +338,72 @@ export function SoilFields({ farm, onChange, onEvidence }: Props & { onEvidence:
               />
               <small>Déjalo vacío si no aparece.</small>
             </div>
+            <LabNumber
+              id="phosphorus"
+              label="Fósforo disponible"
+              unit="mg/kg (ppm)"
+              value={farm.lab?.phosphorus}
+              onChange={(value) => setLab("phosphorus", value)}
+            />
+            <LabNumber
+              id="potassium"
+              label="Potasio"
+              value={farm.lab?.potassium}
+              onChange={(value) => setLab("potassium", value)}
+            />
           </div>
-          <p className="field-help">
-            La materia orgánica viene de restos de plantas y otros seres vivos que se transforman en
-            el suelo.
-          </p>
+          <label className="field-label" htmlFor="potassium-unit">
+            Unidad del potasio según tu informe
+          </label>
+          <select
+            id="potassium-unit"
+            value={farm.lab?.potassiumUnit ?? "cmolc/kg"}
+            onChange={(event) =>
+              setLab("potassiumUnit", event.target.value as LabValues["potassiumUnit"])
+            }
+          >
+            <option value="cmolc/kg">cmol(+)/kg o meq/100 g</option>
+            <option value="mg/kg">mg/kg o ppm</option>
+          </select>
+          {farm.soilOrigin === "lab" && (
+            <p className="field-help">
+              Ingresa pH, fósforo, potasio y materia orgánica. Si el informe trae carbono orgánico
+              en lugar de materia orgánica, regístralo en los datos adicionales.
+            </p>
+          )}
+          <details className="precise-values">
+            <summary>Agregar datos adicionales del análisis</summary>
+            <div className="soil-inputs">
+              <LabNumber
+                id="organicCarbon"
+                label="Carbono orgánico"
+                unit="g/kg"
+                value={farm.lab?.organicCarbon}
+                onChange={(value) => setLab("organicCarbon", value)}
+              />
+              {labFields.map(([id, label, unit]) => (
+                <LabNumber
+                  key={id}
+                  id={id}
+                  label={label}
+                  unit={unit}
+                  value={farm.lab?.[id]}
+                  max={id === "aluminiumSaturation" ? 100 : undefined}
+                  onChange={(value) => setLab(id, value)}
+                />
+              ))}
+            </div>
+            <label className="field-label" htmlFor="soil-texture">
+              Textura del suelo
+            </label>
+            <input
+              id="soil-texture"
+              maxLength={50}
+              value={farm.lab?.texture ?? ""}
+              placeholder="Ej. Franco arcilloso"
+              onChange={(event) => setLab("texture", event.target.value)}
+            />
+          </details>
           {farm.soilOrigin === "lab" ? (
             <details className="precise-values">
               <summary>Agregar fecha y profundidad de la muestra</summary>
@@ -303,11 +434,48 @@ export function SoilFields({ farm, onChange, onEvidence }: Props & { onEvidence:
               </div>
             </details>
           ) : null}
+          <DoseCalculator farm={farm} onChange={onChange} />
         </>
       )}
       <button className="text-button" onClick={onEvidence}>
         ¿Para qué sirven estos datos? <ArrowUpRight size={14} />
       </button>
     </section>
+  );
+}
+
+function LabNumber({
+  id,
+  label,
+  unit,
+  value,
+  onChange,
+  max = 1_000_000,
+}: {
+  id: string;
+  label: string;
+  unit?: string;
+  value?: number | null;
+  onChange: (value: number | null) => void;
+  max?: number;
+}) {
+  return (
+    <div>
+      <label htmlFor={`lab-${id}`}>
+        {label} {unit && <span>{unit}</span>}
+      </label>
+      <input
+        id={`lab-${id}`}
+        type="number"
+        min="0"
+        max={max}
+        step="any"
+        value={value ?? ""}
+        placeholder="Sin dato"
+        onChange={(event) =>
+          onChange(event.target.value === "" ? null : event.target.valueAsNumber)
+        }
+      />
+    </div>
   );
 }

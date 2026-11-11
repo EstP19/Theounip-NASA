@@ -1,77 +1,90 @@
 "use client";
 
-import { Check, Leaf, ArrowUpRight } from "lucide-react";
-import { SPECIES } from "@/lib/evidence";
-import type { FarmInput, Horizon } from "@/lib/types";
+import { pathAvailable } from "@/lib/guide";
+import { GOALS, PATHS } from "@/lib/plot-options";
+import type { FarmInput, Goal, GuidePath } from "@/lib/types";
 
 export function ManagementControls({
   farm,
-  horizon,
   onChange,
-  onHorizon,
-  onEvidence,
 }: {
   farm: FarmInput;
-  horizon: Horizon;
   onChange: (farm: FarmInput) => void;
-  onHorizon: (horizon: Horizon) => void;
-  onEvidence: () => void;
 }) {
+  const goals = farm.goals ?? [];
   return (
     <section className="panel management-panel">
-      <div className="section-heading">
-        <div>
-          <span className="eyebrow">A TU RITMO</span>
-          <h2>¿Qué te gustaría explorar?</h2>
-        </div>
-        <Leaf size={22} />
-      </div>
-      <p className="friendly-intro">
-        Puedes elegir árboles que den sombra y plantas que ayuden a cubrir el suelo. Son ideas para
-        revisar con alguien que conozca tu finca.
-      </p>
-      <fieldset className="species-options">
-        <legend>
-          Plantas que te interesan <span>Opcional</span>
-        </legend>
-        {SPECIES.map((s) => (
-          <label key={s.id} className={farm.species.includes(s.id) ? "chosen" : ""}>
+      <fieldset className="decision-options">
+        <legend>¿Qué te gustaría lograr en tu parcela?</legend>
+        <p>Puedes marcar varios objetivos. Los usaremos para preparar tu guía.</p>
+        {(Object.entries(GOALS) as [Goal, string][]).map(([goal, label]) => (
+          <label key={goal}>
             <input
               type="checkbox"
-              checked={farm.species.includes(s.id)}
-              onChange={(e) =>
+              checked={goals.includes(goal)}
+              onChange={(event) =>
                 onChange({
                   ...farm,
-                  species: e.target.checked
-                    ? [...farm.species, s.id]
-                    : farm.species.filter((id) => id !== s.id),
+                  goals: event.target.checked
+                    ? [...goals, goal]
+                    : goals.filter((item) => item !== goal),
                 })
               }
             />
-            <span className="plant-check">
-              {farm.species.includes(s.id) ? <Check size={13} /> : null}
-            </span>
-            <span>
-              <strong>{s.name}</strong>
-              <small>{s.kind === "Cobertura" ? "Para cubrir el suelo" : "Para dar sombra"}</small>
-            </span>
+            {label}
           </label>
         ))}
       </fieldset>
-      <button className="text-button" onClick={onEvidence}>
-        Conocer estas plantas <ArrowUpRight size={14} />
-      </button>
-      <div className="planning-years">
-        <h3>¿Hasta cuándo quieres planear?</h3>
-        <p>Puedes empezar con 3 años y cambiarlo después.</p>
-        <div className="horizon-control" role="group" aria-label="Tiempo del plan">
-          {([3, 5, 10] as const).map((n) => (
-            <button key={n} aria-pressed={horizon === n} onClick={() => onHorizon(n)}>
-              {n} años
-            </button>
-          ))}
+    </section>
+  );
+}
+
+export function PathPicker({
+  farm,
+  path,
+  onSelect,
+}: {
+  farm: FarmInput;
+  path: GuidePath | null;
+  onSelect: (path: GuidePath) => void;
+}) {
+  if (farm.state === "forest") {
+    return (
+      <section className="panel guide-paths">
+        <h2>Conservar el bosque</h2>
+        <p>Elige una parcela ya intervenida para preparar un plan de manejo de cacao.</p>
+      </section>
+    );
+  }
+  return (
+    <section className="panel guide-paths">
+      <fieldset className="decision-options">
+        <legend>¿Qué camino quieres seguir?</legend>
+        <p>Elige un camino para preparar tu guía paso a paso.</p>
+        <div className="guide-path-grid">
+          {(Object.keys(PATHS) as GuidePath[]).map((id) => {
+            const available = pathAvailable(farm, id);
+            return (
+              <label key={id} className={id === path ? "chosen" : undefined}>
+                <input
+                  type="radio"
+                  name="guide-path"
+                  value={id}
+                  checked={id === path}
+                  disabled={!available}
+                  onChange={() => onSelect(id)}
+                />
+                <span>
+                  <strong>{PATHS[id].title}</strong>
+                  <small>
+                    {available ? PATHS[id].description : "Disponible para parcelas con cacao."}
+                  </small>
+                </span>
+              </label>
+            );
+          })}
         </div>
-      </div>
+      </fieldset>
     </section>
   );
 }

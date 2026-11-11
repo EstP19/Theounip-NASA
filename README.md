@@ -27,11 +27,11 @@ npm start
 
 La aplicación tiene cinco pantallas con direcciones propias. El layout compartido conserva los datos al avanzar, volver o usar el historial del navegador.
 
-1. `/ubicacion` — Tu finca: mapa, ubicación del dispositivo y clima de la zona. Las coordenadas se muestran en una opción adicional.
-2. `/parcela` — Tu cultivo: preguntas cotidianas y opciones aproximadas de sombra y cobertura. No lo sé conserva la información como desconocida; no se presenta un porcentaje como dato del usuario.
-3. `/manejo` — El suelo: estimación de SoilGrids, análisis opcional y guía para preparar la muestra y leer el informe. Aquí se eligen plantas y tiempo del plan.
-4. `/cuidados` — Cuidados: observaciones opcionales, guías de sanidad, sombra y cosecha y un formato descargable de registro por lote.
-5. `/resultados` — Tu plan: comparar alternativas, volver a editar cualquier paso, guardar, descargar o imprimir.
+1. `/ubicacion` — Ubicación de la parcela en el mapa, clima histórico de NASA POWER y estimaciones de suelo.
+2. `/parcela` — Estado, sombra, cobertura, topografía, sistema, variedad o material y observación opcional de drenaje.
+3. `/manejo` — Vista previa edafoclimática, objetivos, análisis de laboratorio y calculadora de cantidades de producto.
+4. `/cuidados` — Elección de un camino de manejo, observaciones sanitarias y fichas de consulta según el cultivo.
+5. `/resultados` — Guía paso a paso del camino elegido, con opciones de guardado, JSON e impresión o PDF desde el navegador.
 
 El caso inicial de San Miguel es ilustrativo; su clima es una descarga real de NASA POWER para `0.343, -76.91`, año 2025. Un cambio de ubicación invalida ese contexto. Las respuestas se conservan automáticamente durante la sesión de esa pestaña, incluso al recargar. Al recuperar un punto propio se vuelve a consultar el clima; el guardado manual permite conservar un escenario para otra sesión.
 
@@ -64,7 +64,7 @@ src/assets/                    Tipografías locales y licencias OFL
 tests/                         Agregación de datos y condiciones del motor
 ```
 
-El motor muestra secuencias de manejo y efectos cualitativos. No estima futuras concentraciones de materia orgánica, dosis de cal, rendimiento ni probabilidad de moniliasis. Las especies candidatas y las intervenciones necesitan revisión local. Bosque natural no genera escenarios de conversión.
+El motor genera tareas cualitativas a partir de los datos de la parcela. La calculadora usa el requerimiento técnico de CaCO₃ o del nutriente y el porcentaje del producto. Divide el requerimiento entre el porcentaje expresado como fracción. Si se indica un área, multiplica los kg/ha por las hectáreas a tratar. Los requerimientos deben venir de un técnico que interprete el análisis local. El flujo protege el bosque natural.
 
 El modo de respaldo conserva paneles y reglas si NASA no responde; el mapa base OSM necesita conexión. No se precargan teselas ni se descargan mapas masivamente. Mantener la atribución y cumplir https://operations.osmfoundation.org/policies/tiles/.
 
@@ -74,9 +74,7 @@ Las fuentes originales y el alcance científico se documentan en los archivos de
 
 Las fichas y acciones muestran enlaces y secciones de consulta. El plan descargado incluye el catálogo de fuentes en `evidence`.
 
-Las tres tarjetas comparan qué hacer con el suelo, el agua y el cultivo según lo registrado en la finca. Cada fila incluye la fuente de la recomendación.
-
-En «Tu plan», el paso a paso de cada ruta usa el horizonte, el estado del cacao y lo observado en el lote. En la API y el plan descargado, cada etapa conserva `actions` con el texto, incluye `tasks` con títulos, datos de origen cuando aplica (`basedOn`) y referencias a `evidence`, e indica qué comprobar antes de continuar (`checkpoint`).
+El plan incluye tareas con sus fuentes, los datos que motivaron la recomendación cuando aplica y una comprobación por etapa. `POST /api/scenario` admite `path` con `current`, `recovery` o `health` y devuelve una sola guía. El contrato anterior sigue disponible enviando `horizon`.
 
 - [Guía global para los sistemas de cultivo de cacao](https://www.icco.org/wp-content/uploads/B27407-Cocoa-Grower-Guide-Spanish-CFW-v7-interactive.pdf), Daymond y colaboradores, 2022, pp. 10–11. Sombra, agua y adaptación al lugar.
 - [Poda y manejo de luz en el cultivo de cacao y otros frutales](https://nvfdhqlkqowvedolvsvw.supabase.co/storage/v1/object/public/Informacion%20Publica/documentos%20tecnicos/Libro%20Manejo%20luz%20cultivo%20cacao.pdf), Fedecacao, 2019, pp. 11–12 y 20–25. Tipos de poda y regulación de la luz. Disponible en la [biblioteca técnica de Fedecacao](https://www.fedecacao.com.co/documentos-tecnicos).
