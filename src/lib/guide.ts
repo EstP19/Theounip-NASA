@@ -61,15 +61,15 @@ export function createGuide(
   if (farm.terrain === "slope")
     runoff.push({
       title: "Identificar tramos donde se pierde suelo",
-      basedOn: "Registraste una parcela en ladera.",
+      basedOn: "Registraste una finca en ladera.",
       reason:
-        "Recorre la parcela después de llover. Marca surcos de escorrentía y suelo desnudo. Conserva la cobertura y acuerda con un técnico cómo proteger los tramos afectados.",
+        "Recorre la finca después de llover. Marca surcos de escorrentía y suelo desnudo. Conserva la cobertura y acuerda con un técnico cómo proteger los tramos afectados.",
       evidence: "wcs",
     });
   if (farm.nearWater)
     runoff.push({
       title: "Revisar la franja cercana al agua",
-      basedOn: "La parcela está cerca de una quebrada, río o zona inundable.",
+      basedOn: "La finca está cerca de una quebrada, río o zona inundable.",
       reason:
         "Ubica la vegetación de la orilla y pregunta hasta dónde ha subido el agua en lluvias fuertes. Conserva esa vegetación y revisa el sector con un técnico antes de abrir drenajes o sembrar.",
       evidence: "wcs",
@@ -86,7 +86,7 @@ export function createGuide(
     soil: {
       title: "Proteger los sitios con suelo expuesto",
       reason:
-        "Ubica los claros al recorrer la parcela. Conserva hojas y coberturas donde protejan el suelo y registra los mismos puntos después de las lluvias.",
+        "Ubica los claros al recorrer la finca. Conserva hojas y coberturas donde protejan el suelo y registra los mismos puntos después de las lluvias.",
       evidence: "wcs",
     },
     health: watch,
@@ -176,7 +176,7 @@ export function createGuide(
                 reason:
                   path === "recovery"
                     ? drainage.reason
-                    : "Después de llover, marca dónde quedan charcos y cuánto tardan en desaparecer. Revisa con un técnico por dónde evacuar el agua y cómo mantener el drenaje de la parcela.",
+                    : "Después de llover, marca dónde quedan charcos y cuánto tardan en desaparecer. Revisa con un técnico por dónde evacuar el agua y cómo mantener el drenaje de la finca.",
               },
             ]
           : []),

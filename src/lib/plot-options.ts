@@ -2,7 +2,7 @@ export const GOALS = {
   production: "Aumentar la producción de cacao",
   soil: "Mejorar o mantener la calidad del suelo",
   health: "Prevenir y controlar enfermedades o plagas",
-  diversity: "Diversificar la parcela y generar sombra con valor",
+  diversity: "Diversificar la finca y generar sombra con valor",
 } as const;
 
 export const TERRAIN = {
@@ -42,7 +42,7 @@ export const PATHS = {
       "Para mantener el cacao establecido con labores de suelo, sombra, nutrición y sanidad.",
   },
   recovery: {
-    title: "Rehabilitar, renovar o transformar la parcela",
+    title: "Rehabilitar, renovar o transformar la finca",
     description:
       "Para recuperar cacao con baja producción o establecerlo en un terreno intervenido.",
   },

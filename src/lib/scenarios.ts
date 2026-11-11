@@ -29,7 +29,7 @@ export function evaluateScenarios(
     return {
       blocked: true,
       warnings: [
-        "Este explorador no propone convertir bosque natural en cacao. Selecciona una parcela previamente intervenida para explorar manejo o recuperación.",
+        "Este explorador no propone convertir bosque natural en cacao. Selecciona una finca previamente intervenida para explorar manejo o recuperación.",
       ],
       missing: [],
       scenarios: [],

@@ -15,7 +15,7 @@ export function ManagementControls({
   return (
     <section className="panel management-panel">
       <fieldset className="decision-options">
-        <legend>¿Qué te gustaría lograr en tu parcela?</legend>
+        <legend>¿Qué te gustaría lograr en tu finca?</legend>
         <p>Puedes marcar varios objetivos. Los usaremos para preparar tu guía.</p>
         {(Object.entries(GOALS) as [Goal, string][]).map(([goal, label]) => (
           <label key={goal}>
@@ -31,7 +31,7 @@ export function ManagementControls({
                 })
               }
             />
-            {label}
+            <span>{label}</span>
           </label>
         ))}
       </fieldset>
@@ -52,7 +52,7 @@ export function PathPicker({
     return (
       <section className="panel guide-paths">
         <h2>Conservar el bosque</h2>
-        <p>Elige una parcela ya intervenida para preparar un plan de manejo de cacao.</p>
+        <p>Elige una finca ya intervenida para preparar un plan de manejo de cacao.</p>
       </section>
     );
   }
@@ -77,7 +77,7 @@ export function PathPicker({
                 <span>
                   <strong>{PATHS[id].title}</strong>
                   <small>
-                    {available ? PATHS[id].description : "Disponible para parcelas con cacao."}
+                    {available ? PATHS[id].description : "Disponible para fincas con cacao."}
                   </small>
                 </span>
               </label>

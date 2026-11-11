@@ -52,7 +52,7 @@ export function SoilContextPanel({ soil, loading, error, farm, onRetry }: Props)
         <Sprout size={22} className="muted" />
       </div>
       <p className="friendly-intro">
-        Al marcar tu parcela, buscamos una referencia del suelo en los mapas de SoilGrids.
+        Al marcar tu finca, buscamos una referencia del suelo en los mapas de SoilGrids.
       </p>
       <div aria-live="polite" aria-busy={loading}>
         {loading ? (
@@ -74,12 +74,12 @@ export function SoilContextPanel({ soil, loading, error, farm, onRetry }: Props)
             {!soil.ph && !soil.organicCarbon ? (
               <p className="field-help">
                 El mapa no tiene valores para este punto. Puedes mover el marcador si no quedó sobre
-                tu parcela, o continuar con tus propios datos.
+                tu finca, o continuar con tus propios datos.
               </p>
             ) : null}
             <p className="field-help">
               Son estimaciones para una zona de unos 250 metros y una profundidad de 5 a 15 cm. No
-              reemplazan una muestra de tu parcela. El carbono orgánico es parte de la materia
+              reemplazan una muestra de tu finca. El carbono orgánico es parte de la materia
               orgánica; no son el mismo dato.
             </p>
             {soil.ph ? (

@@ -941,7 +941,7 @@ main {
   animation: shimmer 1.6s infinite;
   border-radius: 3px;
 }
-input,
+input:not([type="checkbox"], [type="radio"]),
 select {
   width: 100%;
   background: #fff;
@@ -3020,8 +3020,16 @@ label.field-label {
   gap: 25px;
   align-items: start;
 }
-.wizard-grid .map-shell {
-  height: 320px;
+.location-step :is(.map-shell, .map-loading) {
+  width: calc(100% - 24px);
+  height: auto;
+  min-height: 290px;
+  max-height: 600px;
+  aspect-ratio: 4 / 3;
+}
+.location-step .leaflet-map {
+  position: absolute;
+  inset: 0;
 }
 .wizard-grid .climate-metrics {
   padding-top: 29px;
@@ -3368,9 +3376,6 @@ label.field-label {
   .wizard-heading h1 {
     font-size: 30px;
   }
-  .wizard-grid .map-shell {
-    height: 310px;
-  }
 }
 @media (max-width: 760px) {
   .wizard-progress {
@@ -3426,9 +3431,6 @@ label.field-label {
     grid-template-columns: 1fr;
     gap: 18px;
   }
-  .wizard-grid .map-shell {
-    height: 285px;
-  }
   .wizard-grid .climate-metrics strong {
     font-size: 27px;
   }
@@ -3481,7 +3483,7 @@ label.field-label {
   .friendly-options p {
     font-size: 12px;
   }
-  .wizard-shell input:not([type="range"]):not([type="checkbox"]),
+  .wizard-shell input:not([type="range"], [type="checkbox"], [type="radio"]),
   .wizard-shell .farm-panel > input,
   .wizard-shell .farm-panel > select,
   .wizard-shell .soil-panel select {
@@ -3919,8 +3921,10 @@ label.field-label {
 .environmental-panels .soil-context-panel {
   margin: 0;
 }
-.plot-preview {
+.plot-preview,
+.guide-paths {
   margin-bottom: 22px;
+  padding: clamp(16px, 2vw, 24px);
 }
 .plot-preview dl {
   display: grid;
@@ -3969,8 +3973,22 @@ label.field-label {
 .decision-options input,
 .inline-check input {
   flex: none;
+  width: 16px;
+  height: 16px;
   margin: 4px 0 0;
   accent-color: var(--green);
+}
+.decision-options label > span,
+.inline-check > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.inline-check {
+  align-items: center;
+  min-height: 44px;
+}
+.inline-check input {
+  margin: 0;
 }
 .decision-options label + label,
 .inline-check,
@@ -3990,9 +4008,6 @@ label.field-label {
   display: block;
   margin-top: 4px;
   font-size: 0.82rem;
-}
-.guide-paths {
-  margin-bottom: 20px;
 }
 .guide-path-grid {
   display: grid;

@@ -65,13 +65,13 @@ const STEPS = [
   {
     path: "/ubicacion",
     label: "Ubicación",
-    title: "Empecemos por tu parcela",
+    title: "Empecemos por tu finca",
     description: "Busca el lugar en el mapa. Te acompañamos paso a paso.",
   },
   {
     path: "/parcela",
-    label: "Tu parcela",
-    title: "Cuéntanos sobre tu parcela",
+    label: "Tu finca",
+    title: "Cuéntanos sobre tu finca",
     description: "Describe el terreno y cómo manejas el cacao.",
   },
   {
@@ -287,7 +287,7 @@ export function Workspace({
         setAccuracy(Math.round(position.coords.accuracy));
         if (!inPilotRegion(next))
           setError(
-            "Tu dispositivo está fuera de la zona piloto. Puedes marcar manualmente la parcela en Putumayo.",
+            "Tu dispositivo está fuera de la zona piloto. Puedes marcar manualmente la finca en Putumayo.",
           );
       },
       (problem) => {
@@ -297,7 +297,7 @@ export function Workspace({
           problem.code === 1
             ? "No se autorizó la ubicación. Puedes seguir con el mapa o las coordenadas."
             : problem.code === 3
-              ? "La ubicación tardó demasiado. Intenta de nuevo o marca la parcela."
+              ? "La ubicación tardó demasiado. Intenta de nuevo o marca la finca."
               : "No fue posible obtener tu ubicación. Usa el mapa o las coordenadas.",
         );
       },
@@ -396,7 +396,7 @@ export function Workspace({
       soil: soilContext.soil,
       guide,
       evidence: EVIDENCE,
-      note: "La guía usa observaciones de la parcela, clima histórico y estimaciones de SoilGrids. Las cantidades de producto dependen de los requerimientos técnicos ingresados y las etiquetas.",
+      note: "La guía usa observaciones de la finca, clima histórico y estimaciones de SoilGrids. Las cantidades de producto dependen de los requerimientos técnicos ingresados y las etiquetas.",
     };
     const url = URL.createObjectURL(
       new Blob([JSON.stringify(file, null, 2)], { type: "application/json" }),
@@ -414,7 +414,7 @@ export function Workspace({
 
   function continueStep() {
     if (step === 0 && (coordinateChanged || !inPilotRegion(point))) {
-      setStepError("Marca tu parcela en Putumayo o aplica las coordenadas antes de continuar.");
+      setStepError("Marca tu finca en Putumayo o aplica las coordenadas antes de continuar.");
       return;
     }
     if (step === 2 && !readyFarm) {
@@ -428,7 +428,7 @@ export function Workspace({
     if (step === 3 && !selectedPath) {
       setStepError(
         farm.state === "forest"
-          ? "Selecciona una parcela intervenida en el paso «Tu parcela»."
+          ? "Selecciona una finca intervenida en el paso «Tu finca»."
           : "Elige un camino para ver tu plan.",
       );
       return;
@@ -527,7 +527,7 @@ export function Workspace({
             <div className="toolbar-location">
               <span className="status-dot" />
               <strong>
-                {samePoint(point, DEMO_POINT) ? "Ejemplo · San Miguel" : farm.name || "Tu parcela"}
+                {samePoint(point, DEMO_POINT) ? "Ejemplo · San Miguel" : farm.name || "Tu finca"}
               </strong>
               {context ? (
                 <>
@@ -558,7 +558,7 @@ export function Workspace({
               <section className="panel project-intro" aria-label="Sobre SueloVivo">
                 <p>
                   La Institución Universitaria del Putumayo desarrolló SueloVivo para acompañar a
-                  quienes cultivan cacao o quieren sembrarlo en parcelas intervenidas de la
+                  quienes cultivan cacao o quieren sembrarlo en fincas intervenidas de la
                   Amazonía. La herramienta combina tus observaciones con registros de NASA POWER y
                   estimaciones de SoilGrids para preparar una guía de manejo que puedas revisar con
                   un profesional.
@@ -568,7 +568,7 @@ export function Workspace({
                 <div className="section-heading">
                   <div>
                     <span className="eyebrow">01 / BUSQUEMOS EL LUGAR</span>
-                    <h2>Busca tu parcela en el mapa</h2>
+                    <h2>Busca tu finca en el mapa</h2>
                   </div>
                   <span className="step-icon">
                     <MapPin size={19} />
@@ -586,10 +586,10 @@ export function Workspace({
                     ) : (
                       <Crosshair size={16} />
                     )}
-                    {locating ? "Buscando ubicación…" : "Estoy en la parcela: usar mi ubicación"}
+                    {locating ? "Buscando ubicación…" : "Estoy en la finca: usar mi ubicación"}
                   </button>
                   <p className="field-help">
-                    Si estás en la parcela, usa la ubicación del dispositivo. También puedes
+                    Si estás en la finca, usa la ubicación del dispositivo. También puedes
                     marcarla manualmente.
                   </p>
                   <details className="precise-values coordinate-details">
@@ -671,7 +671,7 @@ export function Workspace({
                   ) : null}
                 </div>
               </section>
-              <h2 className="environment-heading">Factores edafoclimáticos de la parcela</h2>
+              <h2 className="environment-heading">Factores edafoclimáticos de la finca</h2>
               <div className="wizard-grid environmental-panels">
                 <section className="panel climate-panel" aria-busy={loading}>
                   <div className="section-heading">
@@ -761,7 +761,7 @@ export function Workspace({
                       </h3>
                       <p>
                         {loading
-                          ? "Estamos solicitando la serie anual a NASA POWER. Puedes seguir describiendo tu parcela."
+                          ? "Estamos solicitando la serie anual a NASA POWER. Puedes seguir describiendo tu finca."
                           : "Confirma tu ubicación y pulsa Conocer el clima para cargar el clima de este punto."}
                       </p>
                       {loading ? (
@@ -789,7 +789,7 @@ export function Workspace({
                 <span className="aside-illustration">
                   <Leaf size={42} />
                 </span>
-                <h2>Observa tu parcela</h2>
+                <h2>Observa tu finca</h2>
                 <p>
                   No necesitas tener medidas exactas. Elige la opción que más se parezca a lo que
                   observas.
@@ -819,7 +819,7 @@ export function Workspace({
           {step === 2 ? (
             <>
               <section className="panel plot-preview" aria-labelledby="plot-preview-title">
-                <h2 id="plot-preview-title">Vista previa edafoclimática de tu parcela</h2>
+                <h2 id="plot-preview-title">Vista previa edafoclimática de tu finca</h2>
                 <dl>
                   <div>
                     <dt>Ubicación</dt>
@@ -891,7 +891,7 @@ export function Workspace({
             <>
               <div className="result-edit-links">
                 <Link href="/ubicacion">Cambiar ubicación</Link>
-                <Link href="/parcela">Editar parcela</Link>
+                <Link href="/parcela">Editar finca</Link>
                 <Link href="/manejo">Editar suelo y objetivos</Link>
                 <Link href="/cuidados">Cambiar camino y observaciones</Link>
               </div>
@@ -903,7 +903,7 @@ export function Workspace({
                   {draftReady &&
                     (farm.state === "forest" ? (
                       <p>
-                        El bosque natural se conserva. Elige una parcela intervenida para preparar
+                        El bosque natural se conserva. Elige una finca intervenida para preparar
                         un plan de cacao.
                       </p>
                     ) : !readyFarm ? (
@@ -1039,7 +1039,7 @@ export function Workspace({
         </div>
         <p>
           Estas referencias orientan las prácticas. La aplicación explica alternativas de manejo; su
-          ejecución requiere revisar las condiciones de la parcela.
+          ejecución requiere revisar las condiciones de la finca.
         </p>
         <div className="evidence-list">
           {EVIDENCE.map((e) => (
@@ -1074,7 +1074,7 @@ export function Workspace({
           ))}
         </div>
         <p className="source-note">
-          Las guías combinan las observaciones de la parcela con el contexto de NASA POWER y
+          Las guías combinan las observaciones de la finca con el contexto de NASA POWER y
           SoilGrids.
         </p>
       </dialog>

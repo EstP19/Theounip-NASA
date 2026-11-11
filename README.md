@@ -27,7 +27,7 @@ npm start
 
 La aplicación tiene cinco pantallas con direcciones propias. El layout compartido conserva los datos al avanzar, volver o usar el historial del navegador.
 
-1. `/ubicacion` — Ubicación de la parcela en el mapa, clima histórico de NASA POWER y estimaciones de suelo.
+1. `/ubicacion` — Ubicación de la finca en el mapa, clima histórico de NASA POWER y estimaciones de suelo.
 2. `/parcela` — Estado, sombra, cobertura, topografía, sistema, variedad o material y observación opcional de drenaje.
 3. `/manejo` — Vista previa edafoclimática, objetivos, análisis de laboratorio y calculadora de cantidades de producto.
 4. `/cuidados` — Elección de un camino de manejo, observaciones sanitarias y fichas de consulta según el cultivo.
@@ -64,7 +64,7 @@ src/assets/                    Tipografías locales y licencias OFL
 tests/                         Agregación de datos y condiciones del motor
 ```
 
-El motor genera tareas cualitativas a partir de los datos de la parcela. La calculadora usa el requerimiento técnico de CaCO₃ o del nutriente y el porcentaje del producto. Divide el requerimiento entre el porcentaje expresado como fracción. Si se indica un área, multiplica los kg/ha por las hectáreas a tratar. Los requerimientos deben venir de un técnico que interprete el análisis local. El flujo protege el bosque natural.
+El motor genera tareas cualitativas a partir de los datos de la finca. La calculadora usa el requerimiento técnico de CaCO₃ o del nutriente y el porcentaje del producto. Divide el requerimiento entre el porcentaje expresado como fracción. Si se indica un área, multiplica los kg/ha por las hectáreas a tratar. Los requerimientos deben venir de un técnico que interprete el análisis local. El flujo protege el bosque natural.
 
 El modo de respaldo conserva paneles y reglas si NASA no responde; el mapa base OSM necesita conexión. No se precargan teselas ni se descargan mapas masivamente. Mantener la atribución y cumplir https://operations.osmfoundation.org/policies/tiles/.
 
@@ -80,7 +80,7 @@ El plan incluye tareas con sus fuentes, los datos que motivaron la recomendació
 - [Poda y manejo de luz en el cultivo de cacao y otros frutales](https://nvfdhqlkqowvedolvsvw.supabase.co/storage/v1/object/public/Informacion%20Publica/documentos%20tecnicos/Libro%20Manejo%20luz%20cultivo%20cacao.pdf), Fedecacao, 2019, pp. 11–12 y 20–25. Tipos de poda y regulación de la luz. Disponible en la [biblioteca técnica de Fedecacao](https://www.fedecacao.com.co/documentos-tecnicos).
 - [Manual técnico de interpretación de análisis de suelos, encalado y fertilización](https://repositorio.inia.gob.pe/items/23143ee9-b964-4d9f-ac33-21f83f832384), INIA Perú, 2025, pp. 40–44 y capítulos 8–10. Muestreo y datos necesarios para interpretar el informe.
 - [Cosecha, beneficio y calidad del grano de cacao](https://repository.agrosavia.co/server/api/core/bitstreams/0574b597-1adc-4e02-8cd8-8a9b65b82b43/content), Compañía Nacional de Chocolates, 2019, pp. 9–10, 19–22 y 24–26. Recolección, fermentación, secado y almacenamiento.
-- [Prácticas de trazabilidad y cero deforestación en cacao](https://www.mundocacao.com.co/noticias/i/91034386/nueva-cartilla-de-practicas-de-trazabilidad-y-cero-deforestacion-en-cacao), Compañía Nacional de Chocolates, 2025, pp. 30–33. Ubicación de parcelas y registros. El CSV es un formato propio de apoyo al registro.
+- [Prácticas de trazabilidad y cero deforestación en cacao](https://www.mundocacao.com.co/noticias/i/91034386/nueva-cartilla-de-practicas-de-trazabilidad-y-cero-deforestacion-en-cacao), Compañía Nacional de Chocolates, 2025, pp. 30–33. Ubicación de fincas y registros. El CSV es un formato propio de apoyo al registro.
 
 ## Publicar en Netlify
 

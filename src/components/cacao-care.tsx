@@ -39,7 +39,7 @@ export function SoilGuide() {
           <strong>Para conversar sobre cal y fertilización.</strong> Pide que revisen la acidez y el
           aluminio intercambiable, calcio, magnesio y CIC efectiva. Los cálculos también dependen de
           la capa de suelo, el cultivo y las características del producto. Usa el análisis de tu
-          parcela para decidir con un técnico local.
+          finca para decidir con un técnico local.
         </li>
       </ol>
       <GuideSource id="inia-suelos" />
@@ -174,7 +174,7 @@ export function CacaoCare({
       {hasCrop && farm.fruiting === "yes" && (
         <section className="panel cacao-guide">
           <span className="eyebrow">DEL ÁRBOL AL GRANO</span>
-          <h2>Cosecha y registro de la parcela</h2>
+          <h2>Cosecha y registro de la finca</h2>
           <p>Consulta estas fichas cuando estés preparando una cosecha.</p>
           <details className="precise-values" open>
             <summary>De la mazorca al grano seco</summary>

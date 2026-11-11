@@ -49,8 +49,8 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
     const pin = L.marker([initial.current.lat, initial.current.lon], {
       icon,
       draggable: true,
-      title: "Ubicación seleccionada de la parcela",
-      alt: "Marcador de la parcela",
+      title: "Ubicación seleccionada de la finca",
+      alt: "Marcador de la finca",
     }).addTo(m);
     marker.current = pin;
     m.on("click", (event: L.LeafletMouseEvent) =>
