@@ -1690,12 +1690,32 @@ label.field-label {
   font-size: 11px;
   font-weight: 600;
 }
+.footer-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
 .footer-credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--green);
   font-weight: 650;
-  text-decoration: underline;
   text-underline-offset: 2px;
   white-space: nowrap;
+}
+.footer-credit-logo {
+  flex: none;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.footer-credit-logo img {
+  display: block;
+  transform: scale(1.18);
+}
+.footer-credit > span:last-child {
+  text-decoration: underline;
 }
 .footer-brand > span {
   font-size: 9px;

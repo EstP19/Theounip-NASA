@@ -45,6 +45,7 @@ import { SoilContextPanel } from "./soil-context-panel";
 import { HarvestGuide, HealthQuestions, SoilGuide } from "./cacao-care";
 import universityMark from "@/app/icon.jpeg";
 import universityLogo from "@/assets/uniputumayo-logo.jpeg";
+import renTechLogo from "@/assets/ren-tech-logo.webp";
 
 const FarmMap = dynamic(() => import("./farm-map"), {
   ssr: false,
@@ -1005,7 +1006,7 @@ export function Workspace({
               />
               SueloVivo <span>por Theounip</span>
             </span>
-            <span>
+            <span className="footer-copy">
               Hecho para acompañar a quienes cultivan cacao en Putumayo.{" "}
               <a
                 className="footer-credit"
@@ -1013,7 +1014,10 @@ export function Workspace({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                by Ren tech
+                <span className="footer-credit-logo">
+                  <Image src={renTechLogo} alt="" width={30} height={30} unoptimized />
+                </span>
+                <span>by Ren tech</span>
               </a>
             </span>
             {step !== LAST_STEP && (
