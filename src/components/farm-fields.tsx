@@ -14,8 +14,8 @@ export function FarmFields({ farm, onChange }: Props) {
     <section className="panel farm-panel" id="parcela">
       <div className="section-heading">
         <div>
-          <span className="eyebrow">02 / TU FINCA</span>
-          <h2>Lo que ves en tu finca</h2>
+          <span className="eyebrow">02 / TU PARCELA</span>
+          <h2>Lo que ves en tu parcela</h2>
         </div>
         <SlidersHorizontal size={19} className="muted" />
       </div>
@@ -23,31 +23,35 @@ export function FarmFields({ farm, onChange }: Props) {
         Elige lo que más se parezca a tu cultivo. No necesitas saberlo todo.
       </p>
       <label className="field-label" htmlFor="farm-name">
-        Nombre de la finca
+        Nombre de la parcela
       </label>
       <input
         id="farm-name"
         value={farm.name}
         maxLength={100}
         onChange={(e) => update("name", e.target.value)}
-        placeholder="Nombre o referencia de la finca"
+        placeholder="Nombre o referencia de la parcela"
       />
       <label className="field-label" htmlFor="plot-state">
-        Estado de la finca
+        Estado de la parcela
       </label>
       <select
         id="plot-state"
         value={farm.state}
         onChange={(e) => update("state", e.target.value as FarmInput["state"])}
       >
+        {farm.state === "established" && (
+          <option value="established" hidden>
+            Estado anterior registrado
+          </option>
+        )}
         <option value="young">Cacao joven</option>
-        <option value="established">Cacao establecido o en producción</option>
         <option value="renewal">Cacao para renovar</option>
-        <option value="pasture">Potrero u otro terreno</option>
+        <option value="pasture">Potrero u otra parcela intervenida</option>
         <option value="forest">Bosque natural</option>
       </select>
       <fieldset className="friendly-options">
-        <legend>¿Cuánta sombra observas en la finca?</legend>
+        <legend>¿Cuánta sombra observas en la parcela?</legend>
         <p>Piensa en la sombra que dan los árboles durante el día.</p>
         <div>
           {[
@@ -81,7 +85,7 @@ export function FarmFields({ farm, onChange }: Props) {
         </div>
       </fieldset>
       <fieldset className="friendly-options">
-        <legend>¿Cómo se ve el suelo de la finca?</legend>
+        <legend>¿Cómo se ve el suelo de la parcela?</legend>
         <p>Puede estar descubierto o protegido por hojas, hierba y otras plantas.</p>
         <div>
           {[
@@ -160,28 +164,21 @@ export function FarmFields({ farm, onChange }: Props) {
           </div>
         </div>
       </details>
-      <label className="field-label" htmlFor="terrain">
-        ¿Cómo es el terreno?
-      </label>
-      <select
-        id="terrain"
-        value={farm.terrain ?? "unknown"}
-        onChange={(event) => update("terrain", event.target.value as FarmInput["terrain"])}
-      >
-        {Object.entries(TERRAIN).map(([value, label]) => (
-          <option key={value} value={value}>
-            {label}
-          </option>
+      <fieldset className="decision-options terrain-options">
+        <legend>¿Dónde está ubicada la parcela?</legend>
+        {(Object.entries(TERRAIN) as [keyof typeof TERRAIN, string][]).map(([value, label]) => (
+          <label key={value}>
+            <input
+              type="radio"
+              name="terrain"
+              value={value}
+              checked={value === (farm.nearWater ? "nearWater" : (farm.terrain ?? "unknown"))}
+              onChange={() => onChange({ ...farm, terrain: value, nearWater: undefined })}
+            />
+            <span>{label}</span>
+          </label>
         ))}
-      </select>
-      <label className="inline-check">
-        <input
-          type="checkbox"
-          checked={farm.nearWater ?? false}
-          onChange={(event) => update("nearWater", event.target.checked)}
-        />
-        <span>Está cerca de un río, quebrada o zona inundable</span>
-      </label>
+      </fieldset>
       {farm.state !== "pasture" && farm.state !== "forest" && (
         <>
           <label className="field-label" htmlFor="crop-system">
@@ -228,18 +225,6 @@ export function FarmFields({ farm, onChange }: Props) {
           />
         </>
       )}
-      <label className="field-label" htmlFor="drainage">
-        ¿Quedan charcos después de llover? (opcional)
-      </label>
-      <select
-        id="drainage"
-        value={farm.drainage}
-        onChange={(event) => update("drainage", event.target.value as FarmInput["drainage"])}
-      >
-        <option value="unknown">No lo sé todavía</option>
-        <option value="good">No, el agua sale</option>
-        <option value="waterlogged">Sí, quedan charcos</option>
-      </select>
       <p className="field-help">
         Tus respuestas son aproximadas. Podrás cambiarlas cuando conozcas mejor el cultivo.
       </p>
@@ -300,7 +285,7 @@ export function SoilFields({ farm, onChange, onEvidence }: Props & { onEvidence:
           <h3>No necesitas tenerlo todo para empezar.</h3>
           <p>
             Usaremos lo que ya nos contaste y las estimaciones del mapa cuando estén disponibles.
-            Una muestra de tu finca te ayudará a conocer mejor el suelo.
+            Una muestra de tu parcela te ayudará a conocer mejor el suelo.
           </p>
         </div>
       ) : (

@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   const point = parseCoordinates(searchParams.get("lat"), searchParams.get("lon"));
   if (!point || !inPilotRegion(point))
     return Response.json(
-      { error: "Marca una finca en Putumayo y su entorno para conocer el suelo." },
+      { error: "Marca una parcela en Putumayo y su entorno para conocer el suelo." },
       { status: 400 },
     );
   try {

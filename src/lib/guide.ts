@@ -19,6 +19,47 @@ export function pathAvailable(farm: FarmInput, path: GuidePath) {
   return farm.state !== "forest" && (farm.state !== "pasture" || path === "recovery");
 }
 
+export function shouldAskHealthQuestions(farm: FarmInput) {
+  return pathAvailable(farm, "health") && farm.goals?.includes("health") === true;
+}
+
+export function farmForPlan(farm: FarmInput): FarmInput {
+  return {
+    ...farm,
+    drainage: "unknown",
+    ...(!shouldAskHealthQuestions(farm)
+      ? { symptoms: "unknown", diseases: undefined, fruiting: undefined }
+      : {}),
+  };
+}
+
+export function createAutomaticGuide(
+  farm: FarmInput,
+  climate: ClimateContext | null,
+  soil: SoilContext | null,
+) {
+  if (farm.state === "forest") return null;
+  const askHealth = shouldAskHealthQuestions(farm);
+  const path = askHealth
+    ? "health"
+    : farm.state === "pasture" || farm.state === "renewal"
+      ? "recovery"
+      : "current";
+  const guide = createGuide(farmForPlan(farm), path, climate, soil);
+  if (!guide || askHealth) return guide;
+
+  return {
+    ...guide,
+    stages: guide.stages.map((stage) => ({
+      ...stage,
+      tasks: stage.tasks.filter(
+        ({ evidence }) =>
+          evidence !== "ica" && evidence !== "fundesyram" && evidence !== "plantvillage",
+      ),
+    })),
+  };
+}
+
 const periods = ["Inicio", "Labores", "Seguimiento"] as const;
 
 export function createGuide(
@@ -61,15 +102,15 @@ export function createGuide(
   if (farm.terrain === "slope")
     runoff.push({
       title: "Identificar tramos donde se pierde suelo",
-      basedOn: "Registraste una finca en ladera.",
+      basedOn: "Registraste una parcela en ladera.",
       reason:
-        "Recorre la finca después de llover. Marca surcos de escorrentía y suelo desnudo. Conserva la cobertura y acuerda con un técnico cómo proteger los tramos afectados.",
+        "Recorre la parcela después de llover. Marca surcos de escorrentía y suelo desnudo. Conserva la cobertura y acuerda con un técnico cómo proteger los tramos afectados.",
       evidence: "wcs",
     });
-  if (farm.nearWater)
+  if (farm.terrain === "nearWater" || farm.nearWater)
     runoff.push({
       title: "Revisar la franja cercana al agua",
-      basedOn: "La finca está cerca de una quebrada, río o zona inundable.",
+      basedOn: "La parcela está cerca de una quebrada, río o zona inundable.",
       reason:
         "Ubica la vegetación de la orilla y pregunta hasta dónde ha subido el agua en lluvias fuertes. Conserva esa vegetación y revisa el sector con un técnico antes de abrir drenajes o sembrar.",
       evidence: "wcs",
@@ -86,7 +127,7 @@ export function createGuide(
     soil: {
       title: "Proteger los sitios con suelo expuesto",
       reason:
-        "Ubica los claros al recorrer la finca. Conserva hojas y coberturas donde protejan el suelo y registra los mismos puntos después de las lluvias.",
+        "Ubica los claros al recorrer la parcela. Conserva hojas y coberturas donde protejan el suelo y registra los mismos puntos después de las lluvias.",
       evidence: "wcs",
     },
     health: watch,
@@ -99,9 +140,17 @@ export function createGuide(
     },
   };
   const extras = goals
-    .filter((goal) => goal !== "health")
+    .filter((goal) => goal !== "health" || farm.state === "pasture")
     .map((goal) => ({
-      ...objectiveTasks[goal],
+      ...(goal === "health"
+        ? {
+            title: "Planear la vigilancia cuando se establezca el cacao",
+            reason:
+              "Acuerda con un técnico qué revisar en las plantas durante los recorridos y cómo registrar las señales por sector.",
+            evidence: "wcs" as const,
+            supportingEvidence: ["ica" as const],
+          }
+        : objectiveTasks[goal]),
       basedOn: `Objetivo elegido: ${GOALS[goal]}.`,
     }));
   const labItems = [
@@ -176,7 +225,7 @@ export function createGuide(
                 reason:
                   path === "recovery"
                     ? drainage.reason
-                    : "Después de llover, marca dónde quedan charcos y cuánto tardan en desaparecer. Revisa con un técnico por dónde evacuar el agua y cómo mantener el drenaje de la finca.",
+                    : "Después de llover, marca dónde quedan charcos y cuánto tardan en desaparecer. Revisa con un técnico por dónde evacuar el agua y cómo mantener el drenaje de la parcela.",
               },
             ]
           : []),

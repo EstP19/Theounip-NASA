@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { calculateDoses, calculateProductDose } from "../src/lib/doses.ts";
-import { createGuide, isGuidePath } from "../src/lib/guide.ts";
+import {
+  createAutomaticGuide,
+  createGuide,
+  isGuidePath,
+  shouldAskHealthQuestions,
+} from "../src/lib/guide.ts";
+import type { FarmInput } from "../src/lib/types.ts";
 import { DEFAULT_FARM, hasRequiredLabValues, isFarmInput } from "../src/lib/validation.ts";
 
 test("la guía sanitaria usa las señales y objetivos elegidos en la parcela", () => {
@@ -44,6 +50,37 @@ test("los datos básicos del análisis completo respetan los ceros y el carbono 
   assert.equal(hasRequiredLabValues({ ...farm, lab: {} }), false);
   assert.equal(hasRequiredLabValues({ ...farm, soilOrigin: "declared", lab: {} }), true);
   assert.equal(hasRequiredLabValues({ ...farm, lab: undefined }), true);
+});
+
+test("el objetivo de sanidad activa sus preguntas y orienta la guía automática", () => {
+  const farm: FarmInput = {
+    ...DEFAULT_FARM,
+    state: "renewal",
+    terrain: "nearWater",
+    drainage: "waterlogged",
+    fruiting: "yes",
+    symptoms: "yes",
+    diseases: ["blackPod"],
+    goals: ["health", "soil"],
+  };
+  assert.ok(isFarmInput(farm));
+  assert.ok(shouldAskHealthQuestions(farm));
+  const guide = createAutomaticGuide(farm, null, null);
+  assert.equal(guide?.path, "health");
+  const tasks = guide?.stages.flatMap((stage) => stage.tasks) ?? [];
+  assert.ok(tasks.some((task) => task.basedOn?.includes("Mazorca negra")));
+  assert.ok(tasks.some((task) => task.title === "Revisar la franja cercana al agua"));
+  assert.ok(tasks.some((task) => task.title === "Proteger los sitios con suelo expuesto"));
+  assert.ok(tasks.every((task) => task.title !== "Evaluar el encharcamiento primero"));
+  const soilOnly: FarmInput = { ...farm, goals: ["soil"] };
+  assert.equal(shouldAskHealthQuestions(soilOnly), false);
+  const soilGuide = createAutomaticGuide(soilOnly, null, null);
+  assert.equal(soilGuide?.path, "recovery");
+  assert.doesNotMatch(JSON.stringify(soilGuide), /Mazorca negra|Señales reportadas/);
+  const pasture: FarmInput = { ...farm, state: "pasture" };
+  assert.equal(shouldAskHealthQuestions(pasture), false);
+  assert.equal(createAutomaticGuide(pasture, null, null)?.path, "recovery");
+  assert.equal(createAutomaticGuide({ ...farm, state: "forest" }, null, null), null);
 });
 
 test("la calculadora aplica el porcentaje del producto y la superficie indicada", () => {

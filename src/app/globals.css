@@ -3805,9 +3805,6 @@ label.field-label {
   margin-bottom: 24px;
   padding: clamp(18px, 3vw, 28px);
 }
-.cacao-care-grid {
-  align-items: start;
-}
 .cacao-guide {
   min-width: 0;
   padding: clamp(18px, 3vw, 28px);
@@ -3921,8 +3918,7 @@ label.field-label {
 .environmental-panels .soil-context-panel {
   margin: 0;
 }
-.plot-preview,
-.guide-paths {
+.plot-preview {
   margin-bottom: 22px;
   padding: clamp(16px, 2vw, 24px);
 }
@@ -3960,8 +3956,7 @@ label.field-label {
 .decision-options > p {
   margin: 5px 0 12px;
 }
-.decision-options label,
-.inline-check {
+.decision-options label {
   display: flex;
   align-items: flex-start;
   gap: 9px;
@@ -3970,28 +3965,18 @@ label.field-label {
   border-radius: 8px;
   cursor: pointer;
 }
-.decision-options input,
-.inline-check input {
+.decision-options input {
   flex: none;
   width: 16px;
   height: 16px;
   margin: 4px 0 0;
   accent-color: var(--green);
 }
-.decision-options label > span,
-.inline-check > span {
+.decision-options label > span {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.inline-check {
-  align-items: center;
-  min-height: 44px;
-}
-.inline-check input {
-  margin: 0;
-}
 .decision-options label + label,
-.inline-check,
 .disease-options {
   margin-top: 9px;
 }
@@ -4009,13 +3994,13 @@ label.field-label {
   margin-top: 4px;
   font-size: 0.82rem;
 }
-.guide-path-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+.terrain-options,
+.health-questions,
+.harvest-guide {
+  margin-top: 20px;
 }
-.guide-path-grid label + label {
-  margin-top: 0;
+.terrain-options legend {
+  margin-bottom: 8px;
 }
 .dose-calculator fieldset {
   padding: 8px 12px 12px;
@@ -4057,8 +4042,7 @@ label.field-label {
   padding-left: 1.25rem;
 }
 @media (max-width: 760px) {
-  .plot-preview dl,
-  .guide-path-grid {
+  .plot-preview dl {
     grid-template-columns: minmax(0, 1fr);
   }
   .farm-guide .timeline-stage {

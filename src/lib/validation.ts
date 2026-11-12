@@ -3,7 +3,7 @@ import { DISEASES, GOALS, MATERIALS, SYSTEMS, TERRAIN } from "./plot-options.ts"
 
 export const DEMO_POINT: Coordinates = { lat: 0.343, lon: -76.91 };
 export const DEFAULT_FARM: FarmInput = {
-  name: "Finca de exploración",
+  name: "Parcela de exploración",
   state: "young",
   shade: 35,
   cover: 25,

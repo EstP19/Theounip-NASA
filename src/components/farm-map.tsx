@@ -49,8 +49,8 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
     const pin = L.marker([initial.current.lat, initial.current.lon], {
       icon,
       draggable: true,
-      title: "Ubicación seleccionada de la finca",
-      alt: "Marcador de la finca",
+      title: "Ubicación seleccionada de la parcela",
+      alt: "Marcador de la parcela",
     }).addTo(m);
     marker.current = pin;
     m.on("click", (event: L.LeafletMouseEvent) =>
@@ -98,7 +98,7 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
         className="leaflet-map"
         ref={container}
         role="region"
-        aria-label="Mapa de ubicación de la finca en Putumayo"
+        aria-label="Mapa de ubicación de la parcela en Putumayo"
       />
       <div className="map-label">
         <span className="map-dot" /> PUTUMAYO, COLOMBIA

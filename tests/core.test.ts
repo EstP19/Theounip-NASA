@@ -194,7 +194,7 @@ test("las tres tarjetas comparan acciones concretas y citan fuentes según el lo
 
   const pasture = evaluateScenarios({ ...DEFAULT_FARM, state: "pasture" }, 3).scenarios;
   assert.ok(pasture.every(({ effects }) => !effects[1].text.includes("charcos")));
-  assert.match(pasture[0].effects[2].text, /uso|usa hoy el terreno/);
+  assert.match(pasture[0].effects[2].text, /uso|usa hoy la parcela/);
   assert.match(pasture[2].effects[2].text, /antes del cacao/);
 });
 

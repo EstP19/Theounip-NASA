@@ -29,7 +29,7 @@ export function evaluateScenarios(
     return {
       blocked: true,
       warnings: [
-        "Este explorador no propone convertir bosque natural en cacao. Selecciona una finca previamente intervenida para explorar manejo o recuperación.",
+        "Este explorador no propone convertir bosque natural en cacao. Selecciona una parcela previamente intervenida para explorar manejo o recuperación.",
       ],
       missing: [],
       scenarios: [],
@@ -43,7 +43,7 @@ export function evaluateScenarios(
   ];
   if (basis.ph === null) missing.push("pH del suelo");
   else if (basis.phSource === "soilgrids")
-    missing.push("Confirmar el pH con una muestra de la finca");
+    missing.push("Confirmar el pH con una muestra de la parcela");
   if (soil?.ph || soil?.organicCarbon)
     warnings.push(
       "SoilGrids orienta el plan con estimaciones del suelo a 5–15 cm y unos 250 m de resolución. Confirma los valores con una muestra antes de aplicar enmiendas; el mapa no muestra cambios futuros.",
@@ -74,7 +74,7 @@ export function evaluateScenarios(
   const soilAction: PlanAction = {
     title:
       basis.phSource === "soilgrids"
-        ? "Comprobar la acidez en tu finca"
+        ? "Comprobar la acidez en tu parcela"
         : basis.ph === null || farm.soilOrigin !== "lab"
           ? "Completar el análisis de suelo"
           : "Revisar el análisis con un técnico",
@@ -101,7 +101,7 @@ export function evaluateScenarios(
     reason:
       farm.drainage === "waterlogged"
         ? "Después de llover, marca los charcos y anota cuánto tardan en desaparecer y hacia dónde corre el agua. Revisa el drenaje del sector con un técnico antes de la siembra."
-        : "Observa por dónde sale el agua después de llover. Si cargaste el clima, fíjate también en cómo se repartió la lluvia durante el año para decidir cuándo recorrer la finca.",
+        : "Observa por dónde sale el agua después de llover. Si cargaste el clima, fíjate también en cómo se repartió la lluvia durante el año para decidir cuándo recorrer la parcela.",
     evidence: farm.drainage === "waterlogged" ? "ica" : "icco",
     pending: farm.drainage !== "good",
   };
@@ -257,7 +257,7 @@ export function evaluateScenarios(
       farm.state === "renewal"
         ? "Registraste cacao para renovar."
         : farm.state === "pasture"
-          ? "Registraste un potrero u otro terreno intervenido."
+          ? "Registraste un potrero u otra parcela intervenida."
           : "Registraste cacao joven.",
     reason: existingCacao
       ? "En un croquis, señala plantas productivas, faltantes y tramos con problemas. Lleva ese registro a la visita técnica para definir dónde empezar los ajustes."
@@ -268,10 +268,10 @@ export function evaluateScenarios(
     current: {
       title: existingCacao
         ? "Organizar las labores que ya haces"
-        : "Registrar el manejo actual del terreno",
+        : "Registrar el manejo actual de la parcela",
       reason: existingCacao
         ? "Haz un calendario por sector con la poda, el cuidado de la cobertura y las rondas de revisión. Anota la fecha de cada labor y las plantas que requieren seguimiento."
-        : "Marca los tramos con suelo cubierto, pisoteo o charcos y anota cómo se usa el terreno. Guarda fotos de esos puntos para comparar en las próximas visitas.",
+        : "Marca los tramos con suelo cubierto, pisoteo o charcos y anota cómo se usa la parcela. Guarda fotos de esos puntos para comparar en las próximas visitas.",
       evidence: "wcs",
     },
     agroforestry: {
@@ -289,7 +289,7 @@ export function evaluateScenarios(
         farm.state === "renewal"
           ? "Marca los árboles productivos, los que requieren poda y los que conviene evaluar para renovación. Acuerda con el técnico el primer sector y conserva los árboles útiles mientras haces el cambio."
           : farm.state === "pasture"
-            ? "Delimita el terreno intervenido y revisa su drenaje. Planifica la cobertura y la sombra junto con el establecimiento del cacao. Conserva los bosques y la vegetación asociada a las quebradas."
+            ? "Delimita la parcela intervenida y revisa su drenaje. Planifica la cobertura y la sombra junto con el establecimiento del cacao. Conserva los bosques y la vegetación asociada a las quebradas."
             : "Marca los tramos con plantas débiles, faltantes o suelo descubierto. Revisa qué ajustes de sombra y cobertura necesita cada tramo antes de reponer plantas.",
       evidence: farm.state === "renewal" ? "fedecacao-poda" : "wcs",
     },
@@ -318,7 +318,7 @@ export function evaluateScenarios(
     current: {
       title: "Escoger los puntos que volverás a visitar",
       reason:
-        "Marca en el croquis dónde tomarás fotos y qué vas a comparar: suelo cubierto, acumulación de agua y estado de las plantas o del terreno.",
+        "Marca en el croquis dónde tomarás fotos y qué vas a comparar: suelo cubierto, acumulación de agua y estado de las plantas o del suelo.",
       evidence: "wcs",
     },
     agroforestry: {
@@ -389,7 +389,7 @@ export function evaluateScenarios(
       stage(
         0,
         {
-          current: "Registrar cómo manejas la finca",
+          current: "Registrar cómo manejas la parcela",
           agroforestry: "Elegir dónde probar los cambios",
           recovery: "Identificar qué sectores recuperar",
         }[kind],
@@ -436,7 +436,7 @@ export function evaluateScenarios(
           "Preparar el siguiente ciclo de manejo",
           [
             {
-              title: "Actualizar el plan con los registros de la finca",
+              title: "Actualizar el plan con los registros de la parcela",
               reason:
                 kind === "current"
                   ? "Compara los registros de suelo, agua y labores de cada sector. Acuerda con la familia qué prácticas mantener y qué problemas necesitan un nuevo plan de manejo."
@@ -503,7 +503,7 @@ export function evaluateScenarios(
       {
         title: "Cuidado del cultivo",
         text: !existingCacao
-          ? "Registrar cómo se usa hoy el terreno"
+          ? "Registrar cómo se usa hoy la parcela"
           : affectedFruit
             ? "Anotar y mostrar los frutos afectados"
             : hasFruit
@@ -554,7 +554,7 @@ export function evaluateScenarios(
         text: hasLabPh
           ? `Revisar con un técnico el pH de ${basis.ph}`
           : basis.phSource === "soilgrids"
-            ? `Confirmar en la finca el pH estimado de ${basis.ph}`
+            ? `Confirmar en la parcela el pH estimado de ${basis.ph}`
             : "Tomar una muestra del primer sector",
         evidence: "inia-suelos",
       },

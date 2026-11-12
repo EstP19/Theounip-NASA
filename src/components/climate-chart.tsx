@@ -124,7 +124,7 @@ export function ClimateChart({ context }: { context: ClimateContext }) {
       ) : null}
       <p className="source-note">
         Estos datos muestran cómo fue el clima de la zona. La lluvia puede variar dentro de tu
-        finca; no indican cómo será el clima en los próximos años.
+        parcela; no indican cómo será el clima en los próximos años.
       </p>
     </>
   );

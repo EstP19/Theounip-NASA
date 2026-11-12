@@ -6,7 +6,7 @@ export const EVIDENCE: Evidence[] = [
     title: "Sistemas agroforestales de cacao",
     organization: "WCS Colombia · 2022",
     shortName: "WCS Colombia",
-    section: "Páginas 11–15, planificación y seguimiento de la finca",
+    section: "Páginas 11–15, planificación y seguimiento de la parcela",
     detail:
       "Planificación predial y secuencias de establecimiento para la Amazonía colombiana, con participación de asociaciones de Putumayo. Las prácticas se adaptan al predio.",
     url: "https://colombia.wcs.org/Portals/113/Publicaciones%20y%20libros/Lineamientos%20para%20establecimiento%20de%20Sistemas%20Agroforestales%20de%20cacao_2022.pdf",
@@ -38,7 +38,7 @@ export const EVIDENCE: Evidence[] = [
     shortName: "Fedecacao",
     section: "Páginas impresas 11–12 y 20–25, tipos de poda",
     detail:
-      "Distingue la formación del cacao joven, el mantenimiento en producción y el ajuste de las copas de los árboles de sombra según la luz de la finca.",
+      "Distingue la formación del cacao joven, el mantenimiento en producción y el ajuste de las copas de los árboles de sombra según la luz de la parcela.",
     url: "https://nvfdhqlkqowvedolvsvw.supabase.co/storage/v1/object/public/Informacion%20Publica/documentos%20tecnicos/Libro%20Manejo%20luz%20cultivo%20cacao.pdf#page=13",
   },
   {

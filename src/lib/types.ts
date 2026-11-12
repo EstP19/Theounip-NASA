@@ -57,7 +57,7 @@ export type FarmInput = {
   symptoms: "unknown" | "no" | "yes";
   fruiting?: "unknown" | "no" | "yes";
   species: Species[];
-  terrain?: "flat" | "slope" | "unknown";
+  terrain?: "flat" | "slope" | "nearWater" | "unknown";
   nearWater?: boolean;
   cropSystem?: "agroforestry" | "monoculture" | "chagra" | "unknown";
   cacaoMaterial?: "seed" | "graft" | "mixed" | "unknown";

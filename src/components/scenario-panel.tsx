@@ -31,7 +31,7 @@ export function ScenarioPanel({
           <div>
             <span className="eyebrow">GUÍA PASO A PASO</span>
             <h2 id="guide-title">{guide.title}</h2>
-            {plotName && <p className="field-help">Finca: {plotName}</p>}
+            {plotName && <p className="field-help">Parcela: {plotName}</p>}
           </div>
           <Sprout size={22} aria-hidden="true" />
         </div>

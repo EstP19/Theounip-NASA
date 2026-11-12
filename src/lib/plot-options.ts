@@ -2,12 +2,13 @@ export const GOALS = {
   production: "Aumentar la producción de cacao",
   soil: "Mejorar o mantener la calidad del suelo",
   health: "Prevenir y controlar enfermedades o plagas",
-  diversity: "Diversificar la finca y generar sombra con valor",
+  diversity: "Diversificar la parcela y generar sombra con valor",
 } as const;
 
 export const TERRAIN = {
-  flat: "Plana o en valle",
-  slope: "Ladera o pendiente",
+  flat: "Plano / Valle (Drenaje normal)",
+  slope: "Ladera / Pendiente (Escorrentía rápida / riesgo de erosión)",
+  nearWater: "Cerca a río o cuenca (Susceptible a encharcamiento / inundación)",
   unknown: "Por conocer",
 } as const;
 export const SYSTEMS = {
@@ -41,16 +42,11 @@ export const DISEASES = {
 export const PATHS = {
   current: {
     title: "Cuidar y optimizar lo que ya tienes",
-    description:
-      "Para mantener el cacao establecido con labores de suelo, sombra, nutrición y sanidad.",
   },
   recovery: {
-    title: "Rehabilitar, renovar o transformar la finca",
-    description:
-      "Para recuperar cacao con baja producción o establecerlo en un terreno intervenido.",
+    title: "Rehabilitar, renovar o transformar la parcela",
   },
   health: {
     title: "Protección fitosanitaria y control de enfermedades",
-    description: "Para organizar recorridos y responder a señales de enfermedades o plagas.",
   },
 } as const;

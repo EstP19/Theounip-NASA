@@ -26,7 +26,7 @@ export async function POST(request: Request) {
         : !isGuidePath(path) || !pathAvailable(body.farm, path) || !hasRequiredLabValues(body.farm))
     )
       return Response.json(
-        { error: "Revisa los datos de la finca y el camino elegido." },
+        { error: "Revisa los datos de la parcela y el camino elegido." },
         { status: 400 },
       );
     let soil: SoilContext | null = null;
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     if (body.point !== undefined) {
       const point = parseCoordinates(String(body.point?.lat ?? ""), String(body.point?.lon ?? ""));
       if (!point || !inPilotRegion(point))
-        return Response.json({ error: "Revisa la ubicación de la finca." }, { status: 400 });
+        return Response.json({ error: "Revisa la ubicación de la parcela." }, { status: 400 });
       try {
         soil = await querySoilContext(point);
       } catch {
