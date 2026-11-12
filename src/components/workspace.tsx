@@ -43,8 +43,8 @@ import { ScenarioPanel } from "./scenario-panel";
 import { useSoilContext } from "./use-soil-context";
 import { SoilContextPanel } from "./soil-context-panel";
 import { HarvestGuide, HealthQuestions, SoilGuide } from "./cacao-care";
-import universityMark from "@/app/icon.jpeg";
-import universityLogo from "@/assets/uniputumayo-logo.jpeg";
+import universityMark from "@/assets/uniputumayo-mark.png";
+import universityLogo from "@/assets/uniputumayo-logo.webp";
 import renTechLogo from "@/assets/ren-tech-logo.webp";
 
 const FarmMap = dynamic(() => import("./farm-map"), {
