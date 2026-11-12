@@ -1010,7 +1010,7 @@ export function Workspace({
               Hecho para acompañar a quienes cultivan cacao en Putumayo.{" "}
               <a
                 className="footer-credit"
-                href="https://ren-redes.vercel.app/"
+                href="https://redes.ren-tech.co/"
                 target="_blank"
                 rel="noopener noreferrer"
               >
