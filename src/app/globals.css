@@ -1690,6 +1690,13 @@ label.field-label {
   font-size: 11px;
   font-weight: 600;
 }
+.footer-credit {
+  color: var(--green);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
 .footer-brand > span {
   font-size: 9px;
   color: #a0ad94;
@@ -4041,6 +4048,27 @@ label.field-label {
   margin: 0;
   padding-left: 1.25rem;
 }
+.plan-print-brand {
+  display: none;
+}
+.guide-health-summary {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.guide-health-summary dl {
+  margin: 8px 0 0;
+}
+.guide-health-summary dl > div + div {
+  margin-top: 6px;
+}
+.guide-health-summary dt {
+  font-weight: 650;
+}
+.guide-health-summary dd {
+  margin: 0;
+}
 @media (max-width: 760px) {
   .plot-preview dl {
     grid-template-columns: minmax(0, 1fr);
@@ -4055,23 +4083,74 @@ label.field-label {
   }
 }
 @media print {
-  .save-section {
+  @page {
+    margin: 13mm;
+  }
+  .wizard-shell:has(.plan-document) > .topbar,
+  main:has(> .plan-document) > :not(.plan-document),
+  body:has(.plan-document) .skip-link,
+  body:has(.plan-document) #nl-badge-frame {
     display: none !important;
   }
-  .farm-guide {
-    box-shadow: none;
-    border: none;
+  .wizard-shell main:has(> .plan-document),
+  .wizard-shell .plan-document .scenario-section,
+  .plan-document .panel {
+    display: block;
+    max-width: none;
+    margin: 0;
     padding: 0;
+    overflow: visible;
+    border: 0;
+    box-shadow: none;
+    break-inside: auto;
   }
-  .farm-guide .timeline-stage {
+  .plan-document {
+    font-size: 10pt;
+    line-height: 1.45;
+    color: #202720;
+  }
+  .plan-print-brand {
+    display: block;
+    margin-bottom: 10pt;
+    font-weight: 700;
+    break-after: avoid-page;
+  }
+  .plan-document .farm-guide > .section-heading,
+  .plan-document .timeline,
+  .plan-document .timeline-stage,
+  .plan-document .timeline-tasks {
     display: block;
   }
-  .farm-guide .timeline-stage::before,
-  .farm-guide .timeline-date i {
+  .plan-document .farm-guide > .section-heading > svg,
+  .plan-document .timeline-stage::before,
+  .plan-document .timeline-date i {
     display: none;
   }
-  .farm-guide .timeline-tasks li,
-  .farm-guide .timeline-checkpoint {
+  .plan-document h2,
+  .plan-document h3,
+  .plan-document .timeline-date,
+  .plan-document summary {
+    break-after: avoid-page;
+  }
+  .plan-document .timeline {
+    margin-top: 14pt;
+  }
+  .plan-document .timeline-stage {
+    padding-bottom: 12pt;
+  }
+  .plan-document .timeline-tasks li {
+    margin-bottom: 7pt;
+  }
+  .plan-document .timeline-tasks li,
+  .plan-document .timeline-checkpoint,
+  .plan-document .guide-health-summary dl > div,
+  .plan-document .harvest-guide li {
     break-inside: avoid;
+  }
+  .plan-document .harvest-guide {
+    margin-top: 14pt;
+  }
+  .plan-document .guide-dose-summary .text-button {
+    display: inline !important;
   }
 }

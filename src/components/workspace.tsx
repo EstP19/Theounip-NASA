@@ -120,6 +120,7 @@ export function Workspace({
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
   const [focusEvidence, setFocusEvidence] = useState<EvidenceId | null>(null);
   const [draftReady, setDraftReady] = useState(false);
@@ -188,7 +189,9 @@ export function Workspace({
   useEffect(() => {
     let expanded: HTMLDetailsElement[] = [];
     const beforePrint = () => {
-      expanded = [...document.querySelectorAll<HTMLDetailsElement>("main details:not([open])")];
+      expanded = [
+        ...document.querySelectorAll<HTMLDetailsElement>(".plan-document details:not([open])"),
+      ];
       expanded.forEach((element) => {
         element.open = true;
       });
@@ -395,6 +398,19 @@ export function Workspace({
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     notify("Escenario descargado con sus datos, reglas y fuentes.");
+  }
+
+  async function downloadPdf() {
+    if (!guide || downloadingPdf) return;
+    setDownloadingPdf(true);
+    try {
+      const { createPlanPdf } = await import("@/lib/plan-pdf");
+      await createPlanPdf(guide, farm.name).download("suelovivo-tu-plan.pdf");
+    } catch {
+      notify("No pudimos descargar el PDF. Vuelve a intentarlo o usa Imprimir.");
+    } finally {
+      setDownloadingPdf(false);
+    }
   }
 
   const draftPoint = parseCoordinates(latText, lonText);
@@ -875,12 +891,15 @@ export function Workspace({
                 <Link href="/manejo">Editar suelo y objetivos</Link>
               </div>
               {guide ? (
-                <>
+                <div className="plan-document">
+                  <p className="plan-print-brand">
+                    SueloVivo · Institución Universitaria del Putumayo
+                  </p>
                   <ScenarioPanel guide={guide} plotName={farm.name} />
                   <HarvestGuide
                     hasFruit={shouldAskHealthQuestions(farm) && farm.fruiting === "yes"}
                   />
-                </>
+                </div>
               ) : (
                 <section className="panel guide-unavailable" aria-live="polite">
                   <h2>{!draftReady ? "Cargando tus datos…" : "Completa tu guía"}</h2>
@@ -919,8 +938,16 @@ export function Workspace({
                     <button className="secondary-button" onClick={exportPlan}>
                       <ArrowDownToLine size={16} /> Descargar datos (JSON)
                     </button>
-                    <button className="primary-button" onClick={() => window.print()}>
-                      <BookOpen size={16} /> Imprimir o guardar PDF
+                    <button className="text-button" onClick={() => window.print()}>
+                      Imprimir
+                    </button>
+                    <button
+                      className="primary-button"
+                      onClick={downloadPdf}
+                      disabled={downloadingPdf}
+                    >
+                      <ArrowDownToLine size={16} />{" "}
+                      {downloadingPdf ? "Preparando PDF…" : "Descargar PDF"}
                     </button>
                   </div>
                 </section>
@@ -978,7 +1005,17 @@ export function Workspace({
               />
               SueloVivo <span>por Theounip</span>
             </span>
-            <span>Hecho para acompañar a quienes cultivan cacao en Putumayo.</span>
+            <span>
+              Hecho para acompañar a quienes cultivan cacao en Putumayo.{" "}
+              <a
+                className="footer-credit"
+                href="https://ren-redes.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                by Ren tech
+              </a>
+            </span>
             {step !== LAST_STEP && (
               <button className="text-button" onClick={save}>
                 <Save size={13} /> Guardar lo que llevo

@@ -67,6 +67,19 @@ test("el objetivo de sanidad activa sus preguntas y orienta la guía automática
   assert.ok(shouldAskHealthQuestions(farm));
   const guide = createAutomaticGuide(farm, null, null);
   assert.equal(guide?.path, "health");
+  assert.deepEqual(guide?.healthObservations, {
+    fruiting: "yes",
+    fruitDamage: "yes",
+    diseases: ["blackPod"],
+  });
+  assert.deepEqual(
+    createAutomaticGuide({ ...farm, fruiting: "no" }, null, null)?.healthObservations,
+    {
+      fruiting: "no",
+      fruitDamage: null,
+      diseases: [],
+    },
+  );
   const tasks = guide?.stages.flatMap((stage) => stage.tasks) ?? [];
   assert.ok(tasks.some((task) => task.basedOn?.includes("Mazorca negra")));
   assert.ok(tasks.some((task) => task.title === "Revisar la franja cercana al agua"));
@@ -76,6 +89,7 @@ test("el objetivo de sanidad activa sus preguntas y orienta la guía automática
   assert.equal(shouldAskHealthQuestions(soilOnly), false);
   const soilGuide = createAutomaticGuide(soilOnly, null, null);
   assert.equal(soilGuide?.path, "recovery");
+  assert.equal(soilGuide?.healthObservations, null);
   assert.doesNotMatch(JSON.stringify(soilGuide), /Mazorca negra|Señales reportadas/);
   const pasture: FarmInput = { ...farm, state: "pasture" };
   assert.equal(shouldAskHealthQuestions(pasture), false);

@@ -1,5 +1,13 @@
 import { calculateDoses } from "./doses.ts";
-import { DISEASES, GOALS, MATERIALS, PATHS, SYSTEMS } from "./plot-options.ts";
+import {
+  DISEASES,
+  FRUIT_DAMAGE_ANSWERS,
+  FRUITING_ANSWERS,
+  GOALS,
+  MATERIALS,
+  PATHS,
+  SYSTEMS,
+} from "./plot-options.ts";
 import { evaluateScenarios } from "./scenarios.ts";
 import type {
   ClimateContext,
@@ -33,6 +41,10 @@ export function farmForPlan(farm: FarmInput): FarmInput {
   };
 }
 
+function reportedDiseases(farm: FarmInput) {
+  return (farm.diseases ?? []).filter((id) => id === "witchesBroom" || farm.fruiting !== "no");
+}
+
 export function createAutomaticGuide(
   farm: FarmInput,
   climate: ClimateContext | null,
@@ -46,18 +58,49 @@ export function createAutomaticGuide(
       ? "recovery"
       : "current";
   const guide = createGuide(farmForPlan(farm), path, climate, soil);
-  if (!guide || askHealth) return guide;
+  if (!guide) return null;
 
   return {
     ...guide,
-    stages: guide.stages.map((stage) => ({
-      ...stage,
-      tasks: stage.tasks.filter(
-        ({ evidence }) =>
-          evidence !== "ica" && evidence !== "fundesyram" && evidence !== "plantvillage",
-      ),
-    })),
+    healthObservations: askHealth
+      ? {
+          fruiting: farm.fruiting ?? "unknown",
+          fruitDamage: farm.fruiting === "no" ? null : farm.symptoms,
+          diseases: reportedDiseases(farm),
+        }
+      : null,
+    stages: askHealth
+      ? guide.stages
+      : guide.stages.map((stage) => ({
+          ...stage,
+          tasks: stage.tasks.filter(
+            ({ evidence }) =>
+              evidence !== "ica" && evidence !== "fundesyram" && evidence !== "plantvillage",
+          ),
+        })),
   };
+}
+
+export function healthAnswerRows(guide: NonNullable<ReturnType<typeof createAutomaticGuide>>) {
+  const observations = guide.healthObservations;
+  if (!observations) return [];
+  return [
+    { label: "¿El cacao tiene frutos ahora?", answer: FRUITING_ANSWERS[observations.fruiting] },
+    ...(observations.fruitDamage !== null
+      ? [
+          {
+            label: "¿Has visto frutos con manchas o daños?",
+            answer: FRUIT_DAMAGE_ANSWERS[observations.fruitDamage],
+          },
+        ]
+      : []),
+    {
+      label: "Señales marcadas",
+      answer:
+        observations.diseases.map((id) => DISEASES[id].name).join(", ") ||
+        "Sin señales registradas",
+    },
+  ];
 }
 
 const periods = ["Inicio", "Labores", "Seguimiento"] as const;
@@ -75,9 +118,7 @@ export function createGuide(
   );
   if (!base) return null;
   const goals = farm.goals ?? [];
-  const observations = (farm.diseases ?? []).filter(
-    (id) => id === "witchesBroom" || farm.fruiting !== "no",
-  );
+  const observations = reportedDiseases(farm);
   const followSignal = {
     moniliasis:
       "Registra en qué frutos de cacao aparece polvo claro y si hay otros frutos cercanos con manchas.",

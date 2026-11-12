@@ -30,7 +30,7 @@ La aplicación tiene cuatro pantallas con direcciones propias. El layout compart
 1. `/ubicacion` — Ubicación de la parcela en el mapa, clima histórico de NASA POWER y estimaciones de suelo.
 2. `/parcela` — Estado, sombra, cobertura, topografía, sistema y variedad o material.
 3. `/manejo` — Vista previa edafoclimática, análisis de laboratorio, calculadora y objetivos. Al marcar sanidad en una parcela con cacao, aparecen las preguntas sobre lo observado.
-4. `/resultados` — Guía paso a paso según los objetivos y el estado de la parcela, fichas de cosecha y opciones de guardado, JSON e impresión o PDF desde el navegador.
+4. `/resultados` — Guía paso a paso según los objetivos y el estado de la parcela, fichas de cosecha, guardado, descarga directa en PDF, exportación en JSON e impresión.
 
 El caso inicial de San Miguel es ilustrativo; su clima es una descarga real de NASA POWER para `0.343, -76.91`, año 2025. Un cambio de ubicación invalida ese contexto. Las respuestas se conservan automáticamente durante la sesión de esa pestaña, incluso al recargar. Al recuperar un punto propio se vuelve a consultar el clima; el guardado manual permite conservar un escenario para otra sesión.
 

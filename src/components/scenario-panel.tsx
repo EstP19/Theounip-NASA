@@ -1,7 +1,7 @@
 import { ArrowUpRight, Check, Sprout } from "lucide-react";
 import { DOSE_SOURCE } from "@/lib/doses";
 import { EVIDENCE } from "@/lib/evidence";
-import type { createGuide } from "@/lib/guide";
+import { healthAnswerRows, type createAutomaticGuide } from "@/lib/guide";
 import { GOALS } from "@/lib/plot-options";
 import type { EvidenceId } from "@/lib/types";
 import { DoseValue } from "./dose-calculator";
@@ -21,9 +21,10 @@ export function ScenarioPanel({
   guide,
   plotName,
 }: {
-  guide: NonNullable<ReturnType<typeof createGuide>>;
+  guide: NonNullable<ReturnType<typeof createAutomaticGuide>>;
   plotName: string;
 }) {
+  const answers = healthAnswerRows(guide);
   return (
     <section className="scenario-section" id="escenarios" aria-labelledby="guide-title">
       <section className="panel action-panel farm-guide">
@@ -39,6 +40,19 @@ export function ScenarioPanel({
           <p className="timeline-intro">
             <strong>Objetivos</strong> · {guide.goals.map((goal) => GOALS[goal]).join(" · ")}
           </p>
+        )}
+        {answers.length > 0 && (
+          <section className="guide-health-summary" aria-labelledby="guide-health-title">
+            <h3 id="guide-health-title">Observaciones de sanidad</h3>
+            <dl>
+              {answers.map(({ label, answer }) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{answer}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
         )}
         <div className="timeline">
           {guide.stages.map((stage) => (

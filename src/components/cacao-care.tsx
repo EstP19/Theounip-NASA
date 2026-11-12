@@ -2,7 +2,8 @@
 
 import { ArrowUpRight, Download, Sprout } from "lucide-react";
 import { EVIDENCE } from "@/lib/evidence";
-import { DISEASES } from "@/lib/plot-options";
+import { HARVEST_RECORDS, HARVEST_STEPS } from "@/lib/harvest";
+import { DISEASES, FRUIT_DAMAGE_ANSWERS, FRUITING_ANSWERS } from "@/lib/plot-options";
 import type { Disease, EvidenceId, FarmInput } from "@/lib/types";
 
 function GuideSource({ id }: { id: EvidenceId }) {
@@ -80,9 +81,11 @@ export function HealthQuestions({
           })
         }
       >
-        <option value="unknown">No lo sé todavía</option>
-        <option value="yes">Sí, ya tiene frutos</option>
-        <option value="no">Todavía no tiene frutos</option>
+        {Object.entries(FRUITING_ANSWERS).map(([value, label]) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
       </select>
       {farm.fruiting !== "no" ? (
         <>
@@ -96,9 +99,11 @@ export function HealthQuestions({
               onChange({ ...farm, symptoms: event.target.value as FarmInput["symptoms"] })
             }
           >
-            <option value="unknown">No los he revisado</option>
-            <option value="no">No he observado daños</option>
-            <option value="yes">Sí, he visto algunos</option>
+            {Object.entries(FRUIT_DAMAGE_ANSWERS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
           </select>
         </>
       ) : null}
@@ -143,35 +148,17 @@ export function HarvestGuide({ hasFruit }: { hasFruit: boolean }) {
       <details className="precise-values" open={hasFruit}>
         <summary>De la cosecha de cacao al grano seco</summary>
         <ol>
-          <li>
-            Recoge los frutos maduros y sanos del cacao con herramientas limpias. Cuida los puntos
-            donde nacen las flores.
-          </li>
-          <li>
-            Registra el inicio y el seguimiento de la fermentación según el protocolo de tu parcela
-            o asociación.
-          </li>
-          <li>
-            Seca el grano de forma uniforme. Mide la humedad antes de empacar y protégelo de la
-            lluvia y de olores fuertes.
-          </li>
-          <li>
-            Selecciona el grano y guárdalo bajo techo, en sacos rotulados y elevados del piso.
-          </li>
+          {HARVEST_STEPS.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
         </ol>
         <GuideSource id="cosecha" />
       </details>
       <details className="precise-values">
         <summary>Registrar el origen y las labores</summary>
-        <p>
-          Asigna un código al lote y anota su origen, la fecha y la labor realizada. Conserva el
-          código durante la cosecha y el beneficio. En la venta registra fecha, peso del grano seco
-          y comprobante.
-        </p>
-        <p>
-          El punto del mapa ayuda a ubicar la parcela. Guarda los linderos y documentos de propiedad
-          por separado cuando necesites acreditar su origen.
-        </p>
+        {HARVEST_RECORDS.map((item) => (
+          <p key={item}>{item}</p>
+        ))}
         <GuideSource id="trazabilidad" />
         <a className="text-button" href="/registro-lote-cacao.csv" download>
           <Download size={15} aria-hidden="true" /> Descargar formato de registro

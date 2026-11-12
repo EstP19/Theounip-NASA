@@ -39,6 +39,18 @@ export const DISEASES = {
   },
 } as const;
 
+export const FRUITING_ANSWERS = {
+  unknown: "No lo sé todavía",
+  yes: "Sí, ya tiene frutos",
+  no: "Todavía no tiene frutos",
+} as const;
+
+export const FRUIT_DAMAGE_ANSWERS = {
+  unknown: "No los he revisado",
+  no: "No he observado daños",
+  yes: "Sí, he visto algunos",
+} as const;
+
 export const PATHS = {
   current: {
     title: "Cuidar y optimizar lo que ya tienes",
