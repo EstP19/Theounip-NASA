@@ -1,3 +1,4 @@
+import { monthLabel, translator, type Locale } from "./i18n.ts";
 import type { ClimateContext, Coordinates, MonthClimate } from "./types.ts";
 
 type Daily = Record<string, number | null>;
@@ -139,5 +140,16 @@ export function aggregatePower(
       humidity: values.humidity.length,
       expected,
     },
+  };
+}
+
+export function localizeClimate(context: ClimateContext, locale: Locale): ClimateContext {
+  if (locale === "es") return context;
+  const t = translator(locale);
+  return {
+    ...context,
+    resolution: t(context.resolution),
+    apiVersion: t(context.apiVersion),
+    months: context.months.map((month) => ({ ...month, label: monthLabel(month.month, locale) })),
   };
 }

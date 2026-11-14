@@ -4209,3 +4209,21 @@ label.field-label {
     display: inline !important;
   }
 }
+
+.topbar-actions .language-select {
+  width: auto;
+  min-height: 36px;
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+@media (max-width: 760px) {
+  .wizard-shell .topbar-actions {
+    max-width: none;
+    gap: 8px;
+  }
+
+  .topbar-actions .language-select {
+    font-size: 12px;
+  }
+}

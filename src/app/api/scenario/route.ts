@@ -1,3 +1,4 @@
+import { parseLocale, translator } from "@/lib/i18n";
 import { evaluateScenarios, ENGINE_VERSION } from "@/lib/scenarios";
 import { createGuide, isGuidePath, pathAvailable } from "@/lib/guide";
 import {
@@ -13,9 +14,11 @@ export const runtime = "nodejs";
 export const maxDuration = 30;
 
 export async function POST(request: Request) {
+  const locale = parseLocale(new URL(request.url).searchParams.get("lang"));
+  const t = translator(locale);
   const text = await request.text();
   if (text.length > 16_000)
-    return Response.json({ error: "La entrada es demasiado grande." }, { status: 413 });
+    return Response.json({ error: t("La entrada es demasiado grande.") }, { status: 413 });
   try {
     const body = JSON.parse(text);
     const path = body.path;
@@ -26,7 +29,7 @@ export async function POST(request: Request) {
         : !isGuidePath(path) || !pathAvailable(body.farm, path) || !hasRequiredLabValues(body.farm))
     )
       return Response.json(
-        { error: "Revisa los datos de la parcela y el camino elegido." },
+        { error: t("Revisa los datos de la parcela y el camino elegido.") },
         { status: 400 },
       );
     let soil: SoilContext | null = null;
@@ -34,12 +37,13 @@ export async function POST(request: Request) {
     if (body.point !== undefined) {
       const point = parseCoordinates(String(body.point?.lat ?? ""), String(body.point?.lon ?? ""));
       if (!point || !inPilotRegion(point))
-        return Response.json({ error: "Revisa la ubicación de la parcela." }, { status: 400 });
+        return Response.json({ error: t("Revisa la ubicación de la parcela.") }, { status: 400 });
       try {
-        soil = await querySoilContext(point);
+        soil = await querySoilContext(point, locale);
       } catch {
-        soilError =
-          "SoilGrids no está disponible; el plan usa tus datos y deja pendientes las comprobaciones del suelo.";
+        soilError = t(
+          "SoilGrids no está disponible; el plan usa tus datos y deja pendientes las comprobaciones del suelo.",
+        );
       }
     }
     // Las estimaciones se obtienen en el servidor para el punto recibido.
@@ -48,10 +52,10 @@ export async function POST(request: Request) {
       soil,
       soilError,
       ...(isGuidePath(path)
-        ? { guide: createGuide(body.farm, path, null, soil) }
-        : evaluateScenarios(body.farm, body.horizon as Horizon, null, soil)),
+        ? { guide: createGuide(body.farm, path, null, soil, locale) }
+        : evaluateScenarios(body.farm, body.horizon as Horizon, null, soil, locale)),
     });
   } catch {
-    return Response.json({ error: "Envía un objeto JSON válido." }, { status: 400 });
+    return Response.json({ error: t("Envía un objeto JSON válido.") }, { status: 400 });
   }
 }

@@ -1,4 +1,5 @@
 "use client";
+import { useLanguage } from "@/components/i18n-provider";
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -13,8 +14,10 @@ type Props = {
 };
 
 export default function FarmMap({ point, accuracy, onChange }: Props) {
+  const { t } = useLanguage();
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
+  const zoom = useRef<L.Control.Zoom | null>(null);
   const marker = useRef<L.Marker | null>(null);
   const precision = useRef<L.Circle | null>(null);
   const changeRef = useRef(onChange);
@@ -38,9 +41,7 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
       10,
     );
     map.current = m;
-    L.control
-      .zoom({ position: "bottomright", zoomInTitle: "Acercar", zoomOutTitle: "Alejar" })
-      .addTo(m);
+    zoom.current = L.control.zoom({ position: "bottomright" }).addTo(m);
     L.control.scale({ imperial: false, position: "bottomleft" }).addTo(m);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -57,8 +58,6 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
     const pin = L.marker([initial.current.lat, initial.current.lon], {
       icon,
       draggable: true,
-      title: "Ubicación seleccionada de la parcela",
-      alt: "Marcador de la parcela",
     }).addTo(m);
     marker.current = pin;
     m.on("click", (event: L.LeafletMouseEvent) =>
@@ -81,6 +80,21 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
       precision.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const controls = zoom.current?.getContainer();
+    for (const [css, label] of [
+      [".leaflet-control-zoom-in", t("Acercar")],
+      [".leaflet-control-zoom-out", t("Alejar")],
+    ]) {
+      const control = controls?.querySelector(css);
+      control?.setAttribute("title", label);
+      control?.setAttribute("aria-label", label);
+    }
+    const pin = marker.current?.getElement();
+    pin?.setAttribute("title", t("Ubicación seleccionada de la parcela"));
+    pin?.setAttribute("aria-label", t("Marcador de la parcela"));
+  }, [t]);
 
   useEffect(() => {
     if (!map.current || !selectedLayer) return;
@@ -126,20 +140,20 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
           className="leaflet-map"
           ref={container}
           role="region"
-          aria-label="Mapa de ubicación de la parcela en Putumayo"
+          aria-label={t("Mapa de ubicación de la parcela en Putumayo")}
         />
         <div className="map-label">
-          <span className="map-dot" /> PUTUMAYO, COLOMBIA
+          <span className="map-dot" /> {t("PUTUMAYO, COLOMBIA")}{" "}
         </div>
-        <div className="map-instruction">Haz clic o arrastra el marcador</div>
+        <div className="map-instruction">{t("Haz clic o arrastra el marcador")}</div>
         {tileError ? (
           <div className="map-error" role="status">
-            El mapa base no está disponible. Puedes ingresar las coordenadas debajo.
+            {t("El mapa base no está disponible. Puedes ingresar las coordenadas debajo.")}{" "}
           </div>
         ) : null}
       </div>
       <div className="map-layer-controls">
-        <label htmlFor="nasa-map-layer">Ver una capa satelital</label>
+        <label htmlFor="nasa-map-layer">{t("Ver una capa satelital")}</label>
         <select
           id="nasa-map-layer"
           value={layerId}
@@ -148,10 +162,10 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
             setLayerId(event.target.value);
           }}
         >
-          <option value="">Mapa base</option>
+          <option value="">{t("Mapa base")}</option>
           {NASA_MAP_LAYERS.map((layer) => (
             <option key={layer.id} value={layer.id}>
-              {layer.title}
+              {t(layer.title)}
             </option>
           ))}
         </select>
@@ -159,16 +173,16 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
           {selectedLayer ? (
             <>
               <p>
-                <strong>{selectedLayer.period}.</strong> {selectedLayer.detail}
+                <strong>{t(selectedLayer.period)}.</strong> {t(selectedLayer.detail)}
               </p>
               <p>
-                <strong>Cómo leer los colores.</strong> {selectedLayer.colors}
+                <strong>{t("Cómo leer los colores.")}</strong> {t(selectedLayer.colors)}
               </p>
               {legendUrl ? (
                 <a href={legendUrl} target="_blank" rel="noreferrer">
                   <Image
                     src={legendUrl}
-                    alt={`Escala oficial de colores de ${selectedLayer.title}`}
+                    alt={t("Escala oficial de colores de {0}", t(selectedLayer.title))}
                     width={420}
                     height={selectedLayer.id === "IMERG_Precipitation_Rate" ? 195 : 95}
                     unoptimized
@@ -176,19 +190,22 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
                 </a>
               ) : null}
               <p className="source-note">
-                Si en un sector solo ves el mapa base, puede que allí falten datos para esa fecha.
+                {t(
+                  "Si en un sector solo ves el mapa base, puede que allí falten datos para esa fecha.",
+                )}{" "}
               </p>
             </>
           ) : (
             <p className="source-note">
-              El mapa base te ayuda a ubicar la parcela. Elige una capa para ver qué muestran sus
-              colores.
+              {t(
+                "El mapa base te ayuda a ubicar la parcela. Elige una capa para ver qué muestran sus colores.",
+              )}{" "}
             </p>
           )}
         </div>
         {failedLayer && failedLayer === layerId ? (
           <p className="inline-warning" role="status">
-            Parte de la capa no se pudo cargar. El mapa base sigue disponible.
+            {t("Parte de la capa no se pudo cargar. El mapa base sigue disponible.")}{" "}
           </p>
         ) : null}
       </div>

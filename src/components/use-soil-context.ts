@@ -1,4 +1,5 @@
 "use client";
+import { useLanguage } from "@/components/i18n-provider";
 
 import { useEffect, useState } from "react";
 import type { Coordinates, SoilContext } from "@/lib/types";
@@ -6,6 +7,7 @@ import { inPilotRegion } from "@/lib/validation";
 import { soilAtPoint } from "@/lib/soil-basis";
 
 export function useSoilContext(point: Coordinates, ready: boolean) {
+  const { t, locale } = useLanguage();
   const [soil, setSoil] = useState<SoilContext | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -21,18 +23,22 @@ export function useSoilContext(point: Coordinates, ready: boolean) {
     const timer = setTimeout(async () => {
       try {
         const response = await fetch(
-          `/api/soil?${new URLSearchParams({ lat: String(lat), lon: String(lon) })}`,
+          `/api/soil?${new URLSearchParams({ lat: String(lat), lon: String(lon), lang: locale })}`,
           {
             signal: controller.signal,
           },
         );
         const body = await response.json();
         if (!response.ok)
-          throw new Error(body.error ?? "No pudimos conocer el suelo de este lugar.");
+          throw new Error(body.error ?? t("No pudimos conocer el suelo de este lugar."));
         if (!controller.signal.aborted) setSoil(body as SoilContext);
       } catch (problem) {
         if (!controller.signal.aborted)
-          setError(problem instanceof Error ? problem.message : "No pudimos consultar el suelo.");
+          setError(
+            problem instanceof Error && problem.message !== "Failed to fetch"
+              ? problem.message
+              : t("No pudimos consultar el suelo."),
+          );
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
@@ -41,7 +47,7 @@ export function useSoilContext(point: Coordinates, ready: boolean) {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [lat, lon, ready, attempt]);
+  }, [lat, lon, ready, attempt, locale, t]);
   return {
     soil: soilAtPoint(soil, point),
     loading,

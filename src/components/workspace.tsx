@@ -1,4 +1,6 @@
 "use client";
+import { parseLocale } from "@/lib/i18n";
+import { useLanguage } from "@/components/i18n-provider";
 
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -35,7 +37,7 @@ import {
   parseCoordinates,
 } from "@/lib/validation";
 import { EVIDENCE, SPECIES } from "@/lib/evidence";
-import { CLIMATE_YEARS, DEMO_CLIMATE_YEAR } from "@/lib/climate";
+import { CLIMATE_YEARS, DEMO_CLIMATE_YEAR, localizeClimate } from "@/lib/climate";
 import { CHALLENGE_RESOURCES, SPACE_APPS_CHALLENGE } from "@/lib/space-apps";
 import { createAutomaticGuide, farmForPlan, shouldAskHealthQuestions } from "@/lib/guide";
 import { SYSTEMS, TERRAIN } from "@/lib/plot-options";
@@ -54,10 +56,15 @@ const FarmMap = dynamic(() => import("./farm-map"), {
   loading: () => (
     <div className="map-loading">
       <Compass size={28} />
-      <span>Preparando tu territorio…</span>
+      <MapLoading />
     </div>
   ),
 });
+function MapLoading() {
+  const { t } = useLanguage();
+  return <span>{t("Preparando tu territorio…")}</span>;
+}
+
 const STORAGE_KEY = "suelovivo:scenario:v1";
 
 function samePoint(a: Coordinates, b: Coordinates) {
@@ -99,6 +106,7 @@ export function Workspace({
   initialContext: ClimateContext;
   children?: React.ReactNode;
 }) {
+  const { t, locale, formatting, setLocale } = useLanguage();
   const pathname = usePathname();
   const router = useRouter();
   const step = Math.max(
@@ -135,9 +143,12 @@ export function Workspace({
   const validFarm = isFarmInput(farm);
   const readyFarm = validFarm && hasRequiredLabValues(farm);
   const soilContext = useSoilContext(point, draftReady);
+  const plotName = farm.name === DEFAULT_FARM.name ? t(farm.name) : farm.name;
+  const formatNumber = (value: number, digits: number) =>
+    value.toLocaleString(formatting, { maximumFractionDigits: digits });
   const guide =
     step === LAST_STEP && draftReady && readyFarm
-      ? createAutomaticGuide(farm, context, soilContext.soil)
+      ? createAutomaticGuide(farm, context, soilContext.soil, locale)
       : null;
   const soilPanel = <SoilContextPanel {...soilContext} farm={farm} onRetry={soilContext.retry} />;
 
@@ -329,7 +340,11 @@ export function Workspace({
       notify("Datos NASA cargados. La procedencia está disponible en el panel ambiental.");
     } catch (problem) {
       if (id !== requestId.current || current.signal.aborted) return;
-      setError(problem instanceof Error ? problem.message : "No se pudieron obtener los datos.");
+      setError(
+        problem instanceof Error && problem.message !== "Failed to fetch"
+          ? problem.message
+          : "No se pudieron obtener los datos.",
+      );
     } finally {
       if (id === requestId.current) setLoading(false);
     }
@@ -388,21 +403,31 @@ export function Workspace({
     }
     const file = {
       schemaVersion: 2,
+      locale,
       exportedAt: new Date().toISOString(),
       point,
-      farm: farmForPlan(farm),
-      climate: context,
+      farm: { ...farmForPlan(farm), name: plotName },
+      climate: context ? localizeClimate(context, locale) : null,
       soil: soilContext.soil,
       guide,
-      evidence: EVIDENCE,
-      note: "La guía usa observaciones de la parcela, clima histórico y estimaciones de SoilGrids. Las cantidades de producto dependen de los requerimientos técnicos ingresados y las etiquetas.",
+      evidence: EVIDENCE.map(({ title, detail, organization, section, shortName, ...source }) => ({
+        ...source,
+        title: t(title),
+        detail: t(detail),
+        organization: t(organization),
+        section: section && t(section),
+        shortName: shortName && t(shortName),
+      })),
+      note: t(
+        "La guía usa observaciones de la parcela, clima histórico y estimaciones de SoilGrids. Las cantidades de producto dependen de los requerimientos técnicos ingresados y las etiquetas.",
+      ),
     };
     const url = URL.createObjectURL(
       new Blob([JSON.stringify(file, null, 2)], { type: "application/json" }),
     );
     const link = document.createElement("a");
     link.href = url;
-    link.download = `suelovivo-plan-${guide.path}.json`;
+    link.download = `suelovivo-plan-${guide.path}${locale === "en" ? "-en" : ""}.json`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     notify("Escenario descargado con sus datos, reglas y fuentes.");
@@ -413,7 +438,9 @@ export function Workspace({
     setDownloadingPdf(true);
     try {
       const { createPlanPdf } = await import("@/lib/plan-pdf");
-      await createPlanPdf(guide, farm.name).download("suelovivo-tu-plan.pdf");
+      await createPlanPdf(guide, plotName, locale).download(
+        locale === "en" ? "suelovivo-your-plan.pdf" : "suelovivo-tu-plan.pdf",
+      );
     } catch {
       notify("No pudimos descargar el PDF. Vuelve a intentarlo o usa Imprimir.");
     } finally {
@@ -447,10 +474,10 @@ export function Workspace({
   return (
     <>
       <a className="skip-link" href="#contenido">
-        Ir al paso actual
+        {t("Ir al paso actual")}{" "}
       </a>
-      <aside className="side-rail" aria-label="Pasos del plan">
-        <Link className="rail-brand" href="/ubicacion" aria-label="Inicio SueloVivo">
+      <aside className="side-rail" aria-label={t("Pasos del plan")}>
+        <Link className="rail-brand" href="/ubicacion" aria-label={t("Inicio SueloVivo")}>
           <Image
             src={universityMark}
             alt=""
@@ -466,7 +493,7 @@ export function Workspace({
               key={item.path}
               href={item.path}
               className={`rail-link ${step === i ? "active" : ""}`}
-              aria-label={item.label}
+              aria-label={t(item.label)}
               aria-current={step === i ? "step" : undefined}
             >
               <span className="rail-step-number">{i + 1}</span>
@@ -476,7 +503,7 @@ export function Workspace({
         <button
           className="rail-link rail-bottom-help"
           onClick={() => openEvidence()}
-          aria-label="Conocer las fuentes"
+          aria-label={t("Conocer las fuentes")}
         >
           <BookOpen size={20} />
         </button>
@@ -489,19 +516,34 @@ export function Workspace({
             <span className="territory">PUTUMAYO</span>
           </Link>
           <div className="topbar-actions">
+            <select
+              className="language-select"
+              value={locale}
+              aria-label={t("Idioma")}
+              onChange={(event) => {
+                setLocale(parseLocale(event.target.value));
+              }}
+            >
+              <option value="es" lang="es">
+                Español
+              </option>
+              <option value="en" lang="en">
+                English
+              </option>
+            </select>
             <button className="text-button" onClick={() => openEvidence()}>
-              De dónde vienen las ideas <ArrowUpRight size={14} />
+              {t("De dónde vienen las ideas")} <ArrowUpRight size={14} />
             </button>
           </div>
         </header>
         <main id="contenido">
-          <nav className="wizard-progress" aria-label="Avance del plan">
+          <nav className="wizard-progress" aria-label={t("Avance del plan")}>
             <ol>
               {STEPS.map((item, i) => (
                 <li key={item.path} className={step === i ? "current" : step > i ? "previous" : ""}>
                   <Link href={item.path} aria-current={step === i ? "step" : undefined}>
                     <span className="step-circle">{i < step ? <Check size={16} /> : i + 1}</span>
-                    <span>{item.label}</span>
+                    <span>{t(item.label)}</span>
                   </Link>
                 </li>
               ))}
@@ -509,13 +551,11 @@ export function Workspace({
           </nav>
           <section className="wizard-heading">
             <div>
-              <p className="eyebrow">
-                PASO {step + 1} DE {STEPS.length}
-              </p>
+              <p className="eyebrow">{t("PASO {0} DE {1}", step + 1, STEPS.length)}</p>
               <h1 ref={stepHeading} tabIndex={-1}>
-                {STEPS[step].title}
+                {t(STEPS[step].title)}
               </h1>
-              <p>{STEPS[step].description}</p>
+              <p>{t(STEPS[step].description)}</p>
             </div>
             <picture className="wizard-nature">
               <source
@@ -535,19 +575,23 @@ export function Workspace({
             <div className="toolbar-location">
               <span className="status-dot" />
               <strong>
-                {samePoint(point, DEMO_POINT) ? "Ejemplo · San Miguel" : farm.name || "Tu parcela"}
+                {samePoint(point, DEMO_POINT)
+                  ? t("Ejemplo · San Miguel")
+                  : plotName || t("Tu parcela")}
               </strong>
               {context ? (
                 <>
                   <span className="toolbar-divider" />
-                  <span>Clima de {context.year}</span>
+                  <span>
+                    {t("Clima de")} {context.year}
+                  </span>
                 </>
               ) : null}
             </div>
             <div className="draft-tools">
               {hasSaved ? (
                 <button className="text-button" onClick={restore}>
-                  Recuperar lo guardado
+                  {t("Recuperar lo guardado")}{" "}
                 </button>
               ) : null}
               <button
@@ -557,26 +601,24 @@ export function Workspace({
                   router.push("/ubicacion");
                 }}
               >
-                <RotateCcw size={13} /> Empezar con un ejemplo
+                <RotateCcw size={13} /> {t("Empezar con un ejemplo")}{" "}
               </button>
             </div>
           </div>
           {step === 0 ? (
             <>
-              <section className="panel project-intro" aria-label="Sobre SueloVivo">
+              <section className="panel project-intro" aria-label={t("Sobre SueloVivo")}>
                 <p>
-                  La Institución Universitaria del Putumayo desarrolló SueloVivo para acompañar a
-                  quienes cultivan cacao o quieren sembrarlo en parcelas intervenidas de la
-                  Amazonía. La herramienta combina tus observaciones con registros de NASA POWER y
-                  estimaciones de SoilGrids para preparar una guía de manejo que puedas revisar con
-                  un profesional.
+                  {t(
+                    "La Institución Universitaria del Putumayo desarrolló SueloVivo para acompañar a quienes cultivan cacao o quieren sembrarlo en parcelas intervenidas de la Amazonía. La herramienta combina tus observaciones con registros de NASA POWER y estimaciones de SoilGrids para preparar una guía de manejo que puedas revisar con un profesional.",
+                  )}{" "}
                 </p>
               </section>
               <section className="panel location-panel location-step" id="ubicacion">
                 <div className="section-heading">
                   <div>
-                    <span className="eyebrow">01 / BUSQUEMOS EL LUGAR</span>
-                    <h2>Busca tu parcela en el mapa</h2>
+                    <span className="eyebrow">{t("01 / BUSQUEMOS EL LUGAR")}</span>
+                    <h2>{t("Busca tu parcela en el mapa")}</h2>
                   </div>
                   <span className="step-icon">
                     <MapPin size={19} />
@@ -594,17 +636,20 @@ export function Workspace({
                     ) : (
                       <Crosshair size={16} />
                     )}
-                    {locating ? "Buscando ubicación…" : "Estoy en la parcela: usar mi ubicación"}
+                    {locating
+                      ? t("Buscando ubicación…")
+                      : t("Estoy en la parcela: usar mi ubicación")}
                   </button>
                   <p className="field-help">
-                    Si estás en la parcela, usa la ubicación del dispositivo. También puedes
-                    marcarla manualmente.
+                    {t(
+                      "Si estás en la parcela, usa la ubicación del dispositivo. También puedes marcarla manualmente.",
+                    )}{" "}
                   </p>
                   <details className="precise-values coordinate-details">
-                    <summary>Ubicar con coordenadas (opcional)</summary>
+                    <summary>{t("Ubicar con coordenadas (opcional)")}</summary>
                     <div className="coordinate-row">
                       <div>
-                        <label htmlFor="latitude">Latitud</label>
+                        <label htmlFor="latitude">{t("Latitud")}</label>
                         <input
                           id="latitude"
                           inputMode="decimal"
@@ -613,7 +658,7 @@ export function Workspace({
                         />
                       </div>
                       <div>
-                        <label htmlFor="longitude">Longitud</label>
+                        <label htmlFor="longitude">{t("Longitud")}</label>
                         <input
                           id="longitude"
                           inputMode="decimal"
@@ -625,28 +670,28 @@ export function Workspace({
                         className="coordinate-button"
                         disabled={!coordinateChanged}
                         onClick={applyCoordinates}
-                        aria-label="Aplicar coordenadas"
-                        title="Aplicar coordenadas"
+                        aria-label={t("Aplicar coordenadas")}
+                        title={t("Aplicar coordenadas")}
                       >
                         <ArrowRight size={18} />
                       </button>
                     </div>
                     {coordinateChanged ? (
                       <p className="inline-warning">
-                        Pulsa la flecha para aplicar las coordenadas editadas.
+                        {t("Pulsa la flecha para aplicar las coordenadas editadas.")}{" "}
                       </p>
                     ) : null}
                     {accuracy !== null ? (
                       <p className="field-help">
-                        Precisión aproximada del dispositivo: {accuracy} m. Confirma el punto en el
-                        mapa.
+                        {t("Precisión aproximada del dispositivo:")} {accuracy}{" "}
+                        {t("m. Confirma el punto en el mapa.")}{" "}
                       </p>
                     ) : null}
                   </details>
                   <div className="query-row">
                     <select
                       value={year}
-                      aria-label="Año del contexto climático"
+                      aria-label={t("Año del contexto climático")}
                       onChange={(e) => {
                         invalidate();
                         setYear(Number(e.target.value));
@@ -654,7 +699,7 @@ export function Workspace({
                     >
                       {CLIMATE_YEARS.map((option) => (
                         <option key={option} value={option}>
-                          Año {option}
+                          {t("Año")} {option}
                         </option>
                       ))}
                     </select>
@@ -668,26 +713,28 @@ export function Workspace({
                       ) : (
                         <Satellite size={16} />
                       )}
-                      {loading ? "Buscando datos…" : "Conocer los datos de tu ubicación"}
+                      {loading ? t("Buscando datos…") : t("Conocer los datos de tu ubicación")}
                     </button>
                   </div>
                   {error ? (
                     <div className="inline-error" role="alert">
-                      {error}
+                      {t(error)}
                       <button className="text-button" onClick={loadDemo}>
-                        Abrir caso ilustrativo <ArrowRight size={13} />
+                        {t("Abrir caso ilustrativo")} <ArrowRight size={13} />
                       </button>
                     </div>
                   ) : null}
                 </div>
               </section>
-              <h2 className="environment-heading">Factores del clima y el suelo de tu parcela</h2>
+              <h2 className="environment-heading">
+                {t("Factores del clima y el suelo de tu parcela")}
+              </h2>
               <div className="wizard-grid environmental-panels">
                 <section className="panel climate-panel" aria-busy={loading}>
                   <div className="section-heading">
                     <div>
-                      <span className="eyebrow">EL CLIMA DE LA ZONA</span>
-                      <h2>Conozcamos el clima</h2>
+                      <span className="eyebrow">{t("EL CLIMA DE LA ZONA")}</span>
+                      <h2>{t("Conozcamos el clima")}</h2>
                     </div>
                     <span className="data-badge">
                       <Satellite size={12} /> NASA POWER
@@ -703,55 +750,59 @@ export function Workspace({
                         <summary>
                           <span className="provenance-dot" />
                           {context.mode === "snapshot"
-                            ? "Datos de un ejemplo en San Miguel"
-                            : "Datos consultados para el lugar elegido"}
+                            ? t("Datos de un ejemplo en San Miguel")
+                            : t("Datos consultados para el lugar elegido")}
                           <span>
-                            Ver de dónde vienen los datos <ArrowDown size={12} />
+                            {t("Ver de dónde vienen los datos")} <ArrowDown size={12} />
                           </span>
                         </summary>
                         <dl>
                           <div>
-                            <dt>Coordenada consultada</dt>
+                            <dt>{t("Coordenada consultada")}</dt>
                             <dd>
                               {context.coordinates.lat}, {context.coordinates.lon}
                             </dd>
                           </div>
                           <div>
-                            <dt>Inicio de la serie</dt>
-                            <dd>1 de enero de {context.year}</dd>
-                          </div>
-                          <div>
-                            <dt>Último día con datos</dt>
-                            <dd>{context.latestDate}</dd>
-                          </div>
-                          <div>
-                            <dt>Resolución</dt>
-                            <dd>{context.resolution}</dd>
-                          </div>
-                          <div>
-                            <dt>Fuente y versión</dt>
+                            <dt>{t("Inicio de la serie")}</dt>
                             <dd>
-                              {context.sources.join(" · ")} · API {context.apiVersion}
+                              {t("1 de enero de")} {context.year}
                             </dd>
                           </div>
                           <div>
-                            <dt>Registro de consulta</dt>
+                            <dt>{t("Último día con datos")}</dt>
+                            <dd>{context.latestDate}</dd>
+                          </div>
+                          <div>
+                            <dt>{t("Resolución")}</dt>
+                            <dd>{t(context.resolution)}</dd>
+                          </div>
+                          <div>
+                            <dt>{t("Fuente y versión")}</dt>
                             <dd>
-                              {new Intl.DateTimeFormat("es-CO", {
+                              {context.sources.join(" · ")} · API {t(context.apiVersion)}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>{t("Registro de consulta")}</dt>
+                            <dd>
+                              {new Intl.DateTimeFormat(formatting, {
                                 timeZone: "America/Bogota",
                                 day: "2-digit",
                                 month: "2-digit",
                                 year: "numeric",
                               }).format(new Date(context.retrievedAt))}{" "}
-                              (Colombia) · estándar de datos {context.timeStandard}
+                              {t("(Colombia) · estándar de datos")} {context.timeStandard}
                             </dd>
                           </div>
                           <div>
-                            <dt>Cobertura temporal</dt>
+                            <dt>{t("Cobertura temporal")}</dt>
                             <dd>
-                              Lluvia {context.coverage.rain}/{context.coverage.expected};
-                              temperatura {context.coverage.temperature}/{context.coverage.expected}
-                              ; humedad {context.coverage.humidity}/{context.coverage.expected} días
+                              {t("Lluvia")} {context.coverage.rain}/{context.coverage.expected}
+                              {t("; temperatura")} {context.coverage.temperature}/
+                              {context.coverage.expected}
+                              {t("; humedad")} {context.coverage.humidity}/
+                              {context.coverage.expected} {t("días")}{" "}
                             </dd>
                           </div>
                         </dl>
@@ -761,7 +812,7 @@ export function Workspace({
                           target="_blank"
                           rel="noreferrer"
                         >
-                          Abrir respuesta de NASA <ExternalLink size={12} />
+                          {t("Abrir respuesta de NASA")} <ExternalLink size={12} />
                         </a>
                       </details>
                     </>
@@ -770,13 +821,15 @@ export function Workspace({
                       <CloudRain size={38} />
                       <h3>
                         {loading
-                          ? "Consultando el contexto regional"
-                          : "Un nuevo punto, nuevos datos"}
+                          ? t("Consultando el contexto regional")
+                          : t("Un nuevo punto, nuevos datos")}
                       </h3>
                       <p>
                         {loading
-                          ? "Estamos consultando los datos de NASA POWER. Puedes seguir describiendo tu parcela."
-                          : "Confirma tu ubicación y pulsa Conocer el clima para cargar el clima de este punto."}
+                          ? t(
+                              "Estamos consultando los datos de NASA POWER. Puedes seguir describiendo tu parcela.",
+                            )
+                          : t("Confirma tu ubicación y pulsa «Conocer los datos de tu ubicación».")}
                       </p>
                       {loading ? (
                         <span className="loading-line" />
@@ -786,7 +839,7 @@ export function Workspace({
                           onClick={queryClimate}
                           disabled={coordinateChanged}
                         >
-                          Consultar esta ubicación <ArrowRight size={14} />
+                          {t("Consultar esta ubicación")} <ArrowRight size={14} />
                         </button>
                       )}
                     </div>
@@ -803,27 +856,29 @@ export function Workspace({
                 <span className="aside-illustration">
                   <Leaf size={42} />
                 </span>
-                <h2>Observa tu parcela</h2>
+                <h2>{t("Observa tu parcela")}</h2>
                 <p>
-                  No necesitas tener medidas exactas. Elige la opción que más se parezca a lo que
-                  observas.
+                  {t(
+                    "No necesitas tener medidas exactas. Elige la opción que más se parezca a lo que observas.",
+                  )}{" "}
                 </p>
                 <div className="aside-tip">
-                  <strong>¿Hay algo que no sabes?</strong>
+                  <strong>{t("¿Hay algo que no sabes?")}</strong>
                   <p>
-                    Puedes indicarlo y seguir. Más adelante podrás regresar y completar la
-                    información.
+                    {t(
+                      "Puedes indicarlo y seguir. Más adelante podrás regresar y completar la información.",
+                    )}{" "}
                   </p>
                 </div>
                 <div className="aside-selected">
                   <MapPin size={16} />
                   <div>
-                    <strong>Lugar elegido</strong>
+                    <strong>{t("Lugar elegido")}</strong>
                     <span>
                       {point.lat.toFixed(4)}, {point.lon.toFixed(4)}
                     </span>
                     <Link className="text-button" href="/ubicacion">
-                      Cambiar lugar <ArrowUpRight size={13} />
+                      {t("Cambiar lugar")} <ArrowUpRight size={13} />
                     </Link>
                   </div>
                 </div>
@@ -833,51 +888,63 @@ export function Workspace({
           {step === 2 ? (
             <>
               <section className="panel plot-preview" aria-labelledby="plot-preview-title">
-                <h2 id="plot-preview-title">Vista previa edafoclimática de tu parcela</h2>
+                <h2 id="plot-preview-title">{t("Vista previa edafoclimática de tu parcela")}</h2>
                 <dl>
                   <div>
-                    <dt>Ubicación</dt>
+                    <dt>{t("Ubicación")}</dt>
                     <dd>
                       {samePoint(point, DEMO_POINT)
-                        ? "San Miguel, Putumayo (ejemplo)"
+                        ? t("San Miguel, Putumayo (ejemplo)")
                         : `${point.lat.toFixed(5)}, ${point.lon.toFixed(5)}`}
                     </dd>
                   </div>
                   <div>
-                    <dt>Topografía</dt>
-                    <dd>{TERRAIN[farm.nearWater ? "nearWater" : (farm.terrain ?? "unknown")]}</dd>
+                    <dt>{t("Topografía")}</dt>
+                    <dd>
+                      {t(TERRAIN[farm.nearWater ? "nearWater" : (farm.terrain ?? "unknown")])}
+                    </dd>
                   </div>
                   <div>
-                    <dt>Sistema de cultivo</dt>
+                    <dt>{t("Sistema de cultivo")}</dt>
                     <dd>
                       {farm.state === "pasture" || farm.state === "forest"
-                        ? "Sin cacao establecido"
-                        : SYSTEMS[farm.cropSystem ?? "unknown"]}
+                        ? t("Sin cacao establecido")
+                        : t(SYSTEMS[farm.cropSystem ?? "unknown"])}
                     </dd>
                   </div>
                   <div>
-                    <dt>Sombra y suelo cubierto</dt>
+                    <dt>{t("Sombra y suelo cubierto")}</dt>
                     <dd>
                       {farm.shadeKnown === false
-                        ? "Sombra por conocer"
-                        : `Sombra aprox. ${farm.shade}%`}
+                        ? t("Sombra por conocer")
+                        : t("Sombra aprox. {0}%", farm.shade)}
                       {" · "}
                       {farm.coverKnown === false
-                        ? "Cobertura por conocer"
-                        : `Suelo cubierto aprox. ${farm.cover}%`}
+                        ? t("Cobertura por conocer")
+                        : t("Suelo cubierto aprox. {0}%", farm.cover)}
                     </dd>
                   </div>
                   <div>
-                    <dt>Suelo estimado · SoilGrids</dt>
+                    <dt>{t("Suelo estimado · SoilGrids")}</dt>
                     <dd>
                       {soilContext.loading
-                        ? "Consultando el mapa…"
-                        : `pH ${soilContext.soil?.ph?.mean ?? "sin dato"} · carbono orgánico ${soilContext.soil?.organicCarbon ? `${soilContext.soil.organicCarbon.mean} g/kg` : "sin dato"}`}
+                        ? t("Consultando el mapa…")
+                        : t(
+                            "pH {0} · carbono orgánico {1}",
+                            soilContext.soil?.ph
+                              ? formatNumber(soilContext.soil.ph.mean, 1)
+                              : t("sin dato"),
+                            soilContext.soil?.organicCarbon
+                              ? t("{0} g/kg", formatNumber(soilContext.soil.organicCarbon.mean, 1))
+                              : t("sin dato"),
+                          )}
                     </dd>
                   </div>
                   <div>
-                    <dt>Clima histórico · NASA POWER</dt>
-                    <dd>{context ? `Serie de ${context.year}` : "Pendiente de consulta"}</dd>
+                    <dt>{t("Clima histórico · NASA POWER")}</dt>
+                    <dd>
+                      {context ? t("Serie de {0}", context.year) : t("Pendiente de consulta")}
+                    </dd>
                   </div>
                 </dl>
               </section>
@@ -900,33 +967,36 @@ export function Workspace({
           {step === LAST_STEP ? (
             <>
               <div className="result-edit-links">
-                <Link href="/ubicacion">Cambiar ubicación</Link>
-                <Link href="/parcela">Editar parcela</Link>
-                <Link href="/manejo">Editar suelo y objetivos</Link>
+                <Link href="/ubicacion">{t("Cambiar ubicación")}</Link>
+                <Link href="/parcela">{t("Editar parcela")}</Link>
+                <Link href="/manejo">{t("Editar suelo y objetivos")}</Link>
               </div>
               {guide ? (
                 <div className="plan-document">
                   <p className="plan-print-brand">
                     SueloVivo · Institución Universitaria del Putumayo
                   </p>
-                  <ScenarioPanel guide={guide} plotName={farm.name} />
+                  <ScenarioPanel guide={guide} plotName={plotName} />
                   <HarvestGuide
                     hasFruit={shouldAskHealthQuestions(farm) && farm.fruiting === "yes"}
                   />
                 </div>
               ) : (
                 <section className="panel guide-unavailable" aria-live="polite">
-                  <h2>{!draftReady ? "Cargando tus datos…" : "Completa tu guía"}</h2>
+                  <h2>{!draftReady ? t("Cargando tus datos…") : t("Completa tu guía")}</h2>
                   {draftReady &&
                     (farm.state === "forest" ? (
                       <p>
-                        El bosque natural se conserva. Elige una parcela intervenida para preparar
-                        un plan de cacao.
+                        {t(
+                          "El bosque natural se conserva. Elige una parcela intervenida para preparar un plan de cacao.",
+                        )}{" "}
                       </p>
                     ) : (
                       <p>
-                        Revisa los campos del análisis o selecciona «Tengo solo algunos datos».{" "}
-                        <Link href="/manejo">Volver a El suelo</Link>
+                        {t(
+                          "Revisa los campos del análisis o selecciona «Tengo solo algunos datos».",
+                        )}{" "}
+                        <Link href="/manejo">{t("Volver a El suelo")}</Link>
                       </p>
                     ))}
                 </section>
@@ -937,23 +1007,25 @@ export function Workspace({
                     <BookOpen size={23} />
                   </div>
                   <div>
-                    <h3>Llévate tu plan</h3>
-                    <p>Guárdalo para revisarlo con tu técnico, tu asociación o tu familia.</p>
+                    <h3>{t("Llévate tu plan")}</h3>
+                    <p>
+                      {t("Guárdalo para revisarlo con tu técnico, tu asociación o tu familia.")}
+                    </p>
                   </div>
                   <div className="save-actions">
                     {hasSaved ? (
                       <button className="text-button" onClick={restore}>
-                        Restaurar guardado
+                        {t("Restaurar guardado")}{" "}
                       </button>
                     ) : null}
                     <button className="secondary-button" onClick={save} disabled={!validFarm}>
-                      <Save size={16} /> Guardar mi plan
+                      <Save size={16} /> {t("Guardar mi plan")}{" "}
                     </button>
                     <button className="secondary-button" onClick={exportPlan}>
-                      <ArrowDownToLine size={16} /> Descargar datos (JSON)
+                      <ArrowDownToLine size={16} /> {t("Descargar datos (JSON)")}{" "}
                     </button>
                     <button className="text-button" onClick={() => window.print()}>
-                      Imprimir
+                      {t("Imprimir")}{" "}
                     </button>
                     <button
                       className="primary-button"
@@ -961,7 +1033,7 @@ export function Workspace({
                       disabled={downloadingPdf}
                     >
                       <ArrowDownToLine size={16} />{" "}
-                      {downloadingPdf ? "Preparando PDF…" : "Descargar PDF"}
+                      {downloadingPdf ? t("Preparando PDF…") : t("Descargar PDF")}
                     </button>
                   </div>
                 </section>
@@ -970,40 +1042,42 @@ export function Workspace({
           ) : null}
           {stepError ? (
             <p className="wizard-error" role="alert">
-              {stepError}
+              {t(stepError)}
             </p>
           ) : null}
           <div className="wizard-navigation">
             <div>
               {step > 0 ? (
                 <Link className="secondary-button" href={STEPS[step - 1].path}>
-                  Volver
+                  {t("Volver")}{" "}
                 </Link>
               ) : (
                 <span className="wizard-small-help">
-                  Puedes volver a cualquier paso cuando quieras.
+                  {t("Puedes volver a cualquier paso cuando quieras.")}{" "}
                 </span>
               )}
             </div>
             <div>
               {step < LAST_STEP ? (
                 <>
-                  <span className="next-step-label">Sigue: {STEPS[step + 1].label}</span>
+                  <span className="next-step-label">
+                    {t("Sigue:")} {t(STEPS[step + 1].label)}
+                  </span>
                   <button className="primary-button wizard-next" onClick={continueStep}>
-                    {step === LAST_STEP - 1 ? "Ver mi plan" : "Continuar"}
+                    {step === LAST_STEP - 1 ? t("Ver mi plan") : t("Continuar")}
                     <ArrowRight size={16} />
                   </button>
                 </>
               ) : (
                 <Link className="secondary-button" href="/parcela">
-                  Seguir probando con mis datos <ArrowRight size={15} />
+                  {t("Seguir probando con mis datos")} <ArrowRight size={15} />
                 </Link>
               )}
             </div>
           </div>
           {step === 0 && !context ? (
             <p className="wizard-small-help">
-              Puedes continuar sin el clima. Luego podrás volver y consultarlo.
+              {t("Puedes continuar sin el clima. Luego podrás volver y consultarlo.")}{" "}
             </p>
           ) : null}
           {children}
@@ -1017,10 +1091,10 @@ export function Workspace({
                 className="brand-mark"
                 unoptimized
               />
-              SueloVivo <span>por Theounip</span>
+              SueloVivo <span>{t("por Theounip")}</span>
             </span>
             <span className="footer-copy">
-              Hecho para acompañar a quienes cultivan cacao en Putumayo.{" "}
+              {t("Hecho para acompañar a quienes cultivan cacao en Putumayo.")}{" "}
               <a
                 className="footer-credit"
                 href="https://redes.ren-tech.co/"
@@ -1035,7 +1109,7 @@ export function Workspace({
             </span>
             {step !== LAST_STEP && (
               <button className="text-button" onClick={save}>
-                <Save size={13} /> Guardar lo que llevo
+                <Save size={13} /> {t("Guardar lo que llevo")}{" "}
               </button>
             )}
           </footer>
@@ -1045,7 +1119,7 @@ export function Workspace({
         {toast ? (
           <>
             <Check size={17} />
-            <span>{toast}</span>
+            <span>{t(toast)}</span>
           </>
         ) : null}
       </div>
@@ -1059,43 +1133,44 @@ export function Workspace({
       >
         <div className="dialog-header">
           <div>
-            <span className="eyebrow">DATOS CON PROCEDENCIA</span>
-            <h2 id="evidence-title">Fuentes y evidencia</h2>
+            <span className="eyebrow">{t("DATOS CON PROCEDENCIA")}</span>
+            <h2 id="evidence-title">{t("Fuentes y evidencia")}</h2>
           </div>
           <button
             className="icon-button"
             onClick={() => dialog.current?.close()}
-            aria-label="Cerrar fuentes"
+            aria-label={t("Cerrar fuentes")}
           >
             <X size={21} />
           </button>
         </div>
         <p>
-          Estas referencias orientan las prácticas. La aplicación explica alternativas de manejo; su
-          ejecución requiere revisar las condiciones de la parcela.
+          {t(
+            "Estas referencias orientan las prácticas. La aplicación explica alternativas de manejo; su ejecución requiere revisar las condiciones de la parcela.",
+          )}{" "}
         </p>
         <div className="evidence-list">
           {EVIDENCE.map((e) => (
             <article className={focusEvidence === e.id ? "highlighted" : ""} key={e.id}>
-              <span>{e.organization}</span>
-              <h3>{e.title}</h3>
+              <span>{t(e.organization)}</span>
+              <h3>{t(e.title)}</h3>
               {e.section ? (
                 <p>
-                  <strong>{e.section}</strong>
+                  <strong>{t(e.section)}</strong>
                 </p>
               ) : null}
-              <p>{e.detail}</p>
+              <p>{t(e.detail)}</p>
               <a href={e.url} target="_blank" rel="noreferrer">
-                Consultar fuente <ArrowUpRight size={14} />
+                {t("Consultar fuente")} <ArrowUpRight size={14} />
               </a>
             </article>
           ))}
         </div>
         <details className="challenge-resources">
-          <summary>Recursos de NASA Space Apps 2026</summary>
+          <summary>{t("Recursos de NASA Space Apps 2026")}</summary>
           <p>
             <a href={SPACE_APPS_CHALLENGE} target="_blank" rel="noreferrer">
-              Abrir la lista oficial del reto <ArrowUpRight size={14} />
+              {t("Abrir la lista oficial del reto")} <ArrowUpRight size={14} />
             </a>
           </p>
           <ul>
@@ -1105,29 +1180,30 @@ export function Workspace({
                   {resource.name}
                 </a>
                 {" · "}
-                {resource.usage}
+                {t(resource.usage)}
               </li>
             ))}
           </ul>
         </details>
-        <h3 className="species-dialog-title">Catálogo de especies candidatas</h3>
+        <h3 className="species-dialog-title">{t("Catálogo de especies candidatas")}</h3>
         <div className="species-list">
           {SPECIES.map((s) => (
             <div key={s.id}>
               <strong>
-                {s.name}
+                {t(s.name)}
                 <em>{s.scientific}</em>
               </strong>
               <span>
-                {s.kind}
-                <small>{s.status}</small>
+                {t(s.kind)}
+                <small>{t(s.status)}</small>
               </span>
             </div>
           ))}
         </div>
         <p className="source-note">
-          Las guías combinan las observaciones de la parcela con el contexto de NASA POWER y
-          SoilGrids.
+          {t(
+            "Las guías combinan las observaciones de la parcela con el contexto de NASA POWER y SoilGrids.",
+          )}{" "}
         </p>
       </dialog>
     </>

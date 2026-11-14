@@ -1,3 +1,4 @@
+import { translator, type Locale } from "./i18n.ts";
 import { fromArrayBuffer } from "geotiff";
 import type { Coordinates, SoilContext, SoilEstimate } from "./types.ts";
 
@@ -11,16 +12,17 @@ let requests = 0;
 export class SoilQueryLimit extends Error {}
 
 // Protección básica por proceso para ambas rutas; no es un límite distribuido.
-export async function querySoilContext(point: Coordinates) {
+export async function querySoilContext(point: Coordinates, locale: Locale = "es") {
+  const t = translator(locale);
   if (Date.now() - windowStart >= 60_000) {
     windowStart = Date.now();
     requests = 0;
   }
   if (requests++ >= 5)
     throw new SoilQueryLimit(
-      "Hemos consultado varios lugares. Espera un minuto y vuelve a intentar.",
+      t("Hemos consultado varios lugares. Espera un minuto y vuelve a intentar."),
     );
-  return getSoilContext(point);
+  return getSoilContext(point, fetch, locale);
 }
 
 // WCS raster numérico: nunca consultar colores de una imagen ni píxeles vecinos.
@@ -83,7 +85,9 @@ export async function decodeSoilPixel(buffer: ArrayBuffer, point: Coordinates, p
 export async function getSoilContext(
   point: Coordinates,
   fetcher: typeof fetch = fetch,
+  locale: Locale = "es",
 ): Promise<SoilContext> {
+  const t = translator(locale);
   const signal = AbortSignal.timeout(18_000);
   const properties = ["phh2o", "soc"] as const;
   const statistics = ["mean", "Q0.05", "Q0.95"] as const;
@@ -100,10 +104,10 @@ export async function getSoilContext(
             next: { revalidate: 86_400 },
           } as RequestInit);
           if (!response.ok || !response.headers.get("content-type")?.includes("image/tiff"))
-            throw new Error("SoilGrids no pudo completar la consulta.");
+            throw new Error(t("SoilGrids no pudo completar la consulta."));
           const buffer = await response.arrayBuffer();
           if (buffer.byteLength > 1_000_000)
-            throw new Error("Respuesta de SoilGrids demasiado grande.");
+            throw new Error(t("Respuesta de SoilGrids demasiado grande."));
           return decodeSoilPixel(buffer, point, property);
         }),
       );
@@ -112,7 +116,10 @@ export async function getSoilContext(
       const mean = value(0);
       if (results.some((item) => item.status === "rejected"))
         warnings.push(
-          `No se completaron todos los datos de ${property === "phh2o" ? "pH" : "carbono orgánico"}. Puedes volver a consultar.`,
+          t(
+            "No se completaron todos los datos de {0}. Puedes volver a consultar.",
+            property === "phh2o" ? "pH" : t("carbono orgánico"),
+          ),
         );
       if (mean === null) return null;
       const lower = value(1),
@@ -124,7 +131,7 @@ export async function getSoilContext(
   // Una caída completa es distinta de una respuesta válida con celdas sin datos.
   if (estimates.every((item) => item === null) && warnings.length === 2)
     throw new Error(
-      "No pudimos consultar SoilGrids ahora. Puedes reintentar o seguir con tus propios datos.",
+      t("No pudimos consultar SoilGrids ahora. Puedes reintentar o seguir con tus propios datos."),
     );
   return {
     coordinates: point,

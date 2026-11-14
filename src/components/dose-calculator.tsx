@@ -1,9 +1,9 @@
 "use client";
+import { useLanguage } from "@/components/i18n-provider";
 
 import { calculateDoses, DOSE_SOURCE } from "@/lib/doses";
 import type { DoseInputs, FarmInput } from "@/lib/types";
 
-const formatKg = new Intl.NumberFormat("es-CO", { maximumSignificantDigits: 4 });
 const fields = {
   area: "Área que se va a tratar (ha, opcional)",
   limeEquivalent: "Requerimiento de carbonato de calcio (kg CaCO₃/ha)",
@@ -20,6 +20,7 @@ export function DoseCalculator({
   farm: FarmInput;
   onChange: (farm: FarmInput) => void;
 }) {
+  const { t } = useLanguage();
   const doses = farm.doses ?? {};
   function setValue<K extends keyof DoseInputs>(key: K, value: DoseInputs[K]) {
     onChange({ ...farm, doses: { ...doses, [key]: value } });
@@ -28,7 +29,7 @@ export function DoseCalculator({
     return (
       <div>
         <label className="field-label" htmlFor={`dose-${key}`}>
-          {fields[key]}
+          {t(fields[key])}
         </label>
         <input
           id={`dose-${key}`}
@@ -37,7 +38,7 @@ export function DoseCalculator({
           max={max}
           step="any"
           value={doses[key] ?? ""}
-          placeholder="Sin dato"
+          placeholder={t("Sin dato")}
           onChange={(event) =>
             setValue(key, event.target.value === "" ? null : event.target.valueAsNumber)
           }
@@ -48,27 +49,28 @@ export function DoseCalculator({
   const { lime, fertilizer } = calculateDoses(doses);
   return (
     <details className="precise-values dose-calculator">
-      <summary>Calcular cantidades de cal y fertilizante</summary>
+      <summary>{t("Calcular cantidades de cal y fertilizante")}</summary>
       <p className="field-help">
-        Copia el requerimiento que calculó tu técnico y el porcentaje de la etiqueta. La cantidad
-        resultante se obtiene al dividir el requerimiento por el porcentaje expresado como fracción.
+        {t(
+          "Copia el requerimiento que calculó tu técnico y el porcentaje de la etiqueta. La cantidad resultante se obtiene al dividir el requerimiento por el porcentaje expresado como fracción.",
+        )}{" "}
       </p>
       {numberField("area")}
       <fieldset>
-        <legend>Cal agrícola</legend>
+        <legend>{t("Cal agrícola")}</legend>
         {numberField("limeEquivalent")}
         {numberField("limeEfficiency", 100)}
-        <DoseValue label="Cal agrícola" value={lime} />
+        <DoseValue label={t("Cal agrícola")} value={lime} />
         {!lime && (
           <p className="field-help">
-            Completa el requerimiento de CaCO₃ y el porcentaje del producto.
+            {t("Completa el requerimiento de CaCO₃ y el porcentaje del producto.")}{" "}
           </p>
         )}
       </fieldset>
       <fieldset>
-        <legend>Fertilizante</legend>
+        <legend>{t("Fertilizante")}</legend>
         <label className="field-label" htmlFor="dose-nutrient">
-          Nutriente, en la misma forma que indica la etiqueta
+          {t("Nutriente, en la misma forma que indica la etiqueta")}{" "}
         </label>
         <select
           id="dose-nutrient"
@@ -85,25 +87,25 @@ export function DoseCalculator({
             })
           }
         >
-          <option value="">Selecciona un nutriente</option>
-          <option value="N">Nitrógeno (N)</option>
-          <option value="P₂O₅">Fósforo expresado como P₂O₅</option>
-          <option value="K₂O">Potasio expresado como K₂O</option>
+          <option value="">{t("Selecciona un nutriente")}</option>
+          <option value="N">{t("Nitrógeno (N)")}</option>
+          <option value="P₂O₅">{t("Fósforo expresado como P₂O₅")}</option>
+          <option value="K₂O">{t("Potasio expresado como K₂O")}</option>
         </select>
         {numberField("nutrientRequirement")}
         {numberField("nutrientContent", 100)}
-        <DoseValue label="Fertilizante" value={fertilizer} />
+        <DoseValue label={t("Fertilizante")} value={fertilizer} />
         {!fertilizer && (
           <p className="field-help">
-            Selecciona un nutriente y completa el requerimiento y el porcentaje.
+            {t("Selecciona un nutriente y completa el requerimiento y el porcentaje.")}{" "}
           </p>
         )}
       </fieldset>
       <p className="field-help">
-        Confirma con el técnico el producto, la forma de aplicación y el área tratada.
+        {t("Confirma con el técnico el producto, la forma de aplicación y el área tratada.")}{" "}
       </p>
       <a className="text-button" href={DOSE_SOURCE} target="_blank" rel="noreferrer">
-        Manual INIA, capítulos 9 y 10
+        {t("Manual INIA, capítulos 9 y 10")}{" "}
       </a>
     </details>
   );
@@ -116,13 +118,20 @@ export function DoseValue({
   label: string;
   value: ReturnType<typeof calculateDoses>["lime"];
 }) {
+  const { t, formatting } = useLanguage();
+  const formatKg = new Intl.NumberFormat(formatting, { maximumSignificantDigits: 4 });
   if (!value) return null;
   return (
     <p className="dose-result" role="status">
       <strong>
         {label} · {formatKg.format(value.perHa)} kg/ha
       </strong>
-      {value.total !== null && <> · {formatKg.format(value.total)} kg para el área indicada</>}
+      {value.total !== null && (
+        <>
+          {" "}
+          · {formatKg.format(value.total)} {t("kg para el área indicada")}
+        </>
+      )}
     </p>
   );
 }

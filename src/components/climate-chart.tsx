@@ -1,16 +1,19 @@
 "use client";
+import { useLanguage } from "@/components/i18n-provider";
 
 import { useState } from "react";
 import { Droplets, Thermometer, CloudRain, Info } from "lucide-react";
+import { monthLabel } from "@/lib/i18n";
 import type { ClimateContext } from "@/lib/types";
 
-export function number(value: number | null, digits = 0) {
-  return value === null
-    ? "Sin dato"
-    : value.toLocaleString("es-CO", { maximumFractionDigits: digits });
-}
-
 export function ClimateChart({ context }: { context: ClimateContext }) {
+  const { t, locale, formatting } = useLanguage();
+  const number = (value: number | null, digits = 0) =>
+    value === null
+      ? t("Sin dato")
+      : value.toLocaleString(formatting, { maximumFractionDigits: digits });
+  const label = (month: number) =>
+    locale === "es" ? context.months[month - 1].label : monthLabel(month, locale);
   const [selected, setSelected] = useState<number | null>(null);
   const active = selected === null ? null : context.months[selected];
   const latestMonth = Number(context.latestDate.slice(5, 7)) - 1;
@@ -18,7 +21,7 @@ export function ClimateChart({ context }: { context: ClimateContext }) {
   const fullYearRain = context.annual.rain !== null;
   const rainThrough = context.observedRain.through;
   const rainDate = rainThrough
-    ? new Intl.DateTimeFormat("es-CO", {
+    ? new Intl.DateTimeFormat(formatting, {
         day: "numeric",
         month: "short",
         timeZone: "UTC",
@@ -37,14 +40,16 @@ export function ClimateChart({ context }: { context: ClimateContext }) {
           <span className="metric-icon blue">
             <CloudRain size={18} />
           </span>
-          <span className="metric-label">{fullYearRain ? "Lluvia anual" : "Lluvia acumulada"}</span>
+          <span className="metric-label">
+            {fullYearRain ? t("Lluvia anual") : t("Lluvia acumulada")}
+          </span>
           <strong>
             {number(context.observedRain.total, 1)}
             {context.observedRain.total !== null ? <small> mm</small> : null}
           </strong>
           {!fullYearRain && rainDate ? (
             <small>
-              Hasta el {rainDate} · {context.coverage.rain} días con datos
+              {t("Hasta el")} {rainDate} · {context.coverage.rain} {t("días con datos")}{" "}
             </small>
           ) : null}
         </div>
@@ -52,7 +57,7 @@ export function ClimateChart({ context }: { context: ClimateContext }) {
           <span className="metric-icon coral">
             <Thermometer size={18} />
           </span>
-          <span className="metric-label">Temperatura promedio</span>
+          <span className="metric-label">{t("Temperatura promedio")}</span>
           <strong>
             {number(context.annual.temperature, 1)} <small>°C</small>
           </strong>
@@ -61,7 +66,7 @@ export function ClimateChart({ context }: { context: ClimateContext }) {
           <span className="metric-icon green">
             <Droplets size={18} />
           </span>
-          <span className="metric-label">Humedad del aire</span>
+          <span className="metric-label">{t("Humedad del aire")}</span>
           <strong>
             {number(context.annual.humidity, 1)} <small>%</small>
           </strong>
@@ -69,9 +74,11 @@ export function ClimateChart({ context }: { context: ClimateContext }) {
       </div>
       <div className="chart-heading">
         <span>
-          Lluvia por mes <span className="muted">· mm</span>
+          {t("Lluvia por mes")} <span className="muted">· mm</span>
         </span>
-        <span className="legend-dot">NASA POWER · {context.year}</span>
+        <span className="legend-dot">
+          {t("NASA POWER ·")} {context.year}
+        </span>
       </div>
       <button
         type="button"
@@ -79,11 +86,11 @@ export function ClimateChart({ context }: { context: ClimateContext }) {
         onClick={() => setSelected(latestMonth)}
         aria-pressed={selected === latestMonth}
       >
-        Ver último mes con datos · {context.months[latestMonth].label}
+        {t("Ver último mes con datos ·")} {label(latestMonth + 1)}
       </button>
       <div
         className="rain-chart"
-        aria-label={`Lluvia mensual de ${context.year}. Selecciona un mes para ver sus datos.`}
+        aria-label={t("Lluvia mensual de {0}. Selecciona un mes para ver sus datos.", context.year)}
       >
         <div className="chart-grid" aria-hidden="true">
           <span>{number(max)}</span>
@@ -98,7 +105,7 @@ export function ClimateChart({ context }: { context: ClimateContext }) {
               className={`month-bar ${selected === i ? "selected" : ""} ${wettest?.month === m.month ? "wettest" : ""} ${m.rain === null && m.observedRain !== null ? "partial-rain" : ""}`}
               onClick={() => setSelected(selected === i ? null : i)}
               aria-pressed={selected === i}
-              aria-label={`${m.label}: ${m.observedRain === null ? "sin datos de lluvia" : `${number(m.observedRain, 1)} milímetros${m.rain === null ? ", acumulado parcial" : ""}`}`}
+              aria-label={`${label(m.month)}: ${m.observedRain === null ? t("sin datos de lluvia") : t("{0} milímetros{1}", number(m.observedRain, 1), m.rain === null ? t(", acumulado parcial") : "")}`}
             >
               <span className="bar-space">
                 <span
@@ -110,7 +117,7 @@ export function ClimateChart({ context }: { context: ClimateContext }) {
                   <span className="bar-tip">{number(m.observedRain, 1)}</span>
                 </span>
               </span>
-              <span className="month-name">{m.label}</span>
+              <span className="month-name">{label(m.month)}</span>
             </button>
           ))}
         </div>
@@ -119,19 +126,23 @@ export function ClimateChart({ context }: { context: ClimateContext }) {
         {active ? (
           <>
             <strong>
-              {active.label} {context.year}
+              {label(active.month)} {context.year}
             </strong>
             <span>
               {active.observedRain === null
-                ? "Sin datos de lluvia"
-                : `${number(active.observedRain, 1)} mm${active.rain === null ? " (acumulado parcial)" : ""}`}
+                ? t("Sin datos de lluvia")
+                : t(
+                    "{0} mm{1}",
+                    number(active.observedRain, 1),
+                    active.rain === null ? t(" (acumulado parcial)") : "",
+                  )}
               {" · "}
-              {number(active.temperature, 1)} °C · HR {number(active.humidity, 1)}%
+              {number(active.temperature, 1)} {t("°C · HR")} {number(active.humidity, 1)}%
             </span>
             <small>
-              Lluvia: {active.validDays.rain}/{active.days} días · temperatura:{" "}
-              {active.validDays.temperature}/{active.days} · humedad: {active.validDays.humidity}/
-              {active.days}
+              {t("Lluvia:")} {active.validDays.rain}/{active.days} {t("días · temperatura:")}{" "}
+              {active.validDays.temperature}/{active.days} {t("· humedad:")}{" "}
+              {active.validDays.humidity}/{active.days}
             </small>
           </>
         ) : (
@@ -139,21 +150,27 @@ export function ClimateChart({ context }: { context: ClimateContext }) {
             <Info size={15} />
             <span>
               {wettest
-                ? `${wettest.label} tuvo más lluvia entre los meses completos. Selecciona una barra para explorar.`
-                : "No hay acumulados mensuales completos disponibles."}
+                ? t(
+                    "{0} tuvo más lluvia entre los meses completos. Selecciona una barra para explorar.",
+                    label(wettest.month),
+                  )
+                : t("No hay acumulados mensuales completos disponibles.")}
             </span>
           </>
         )}
       </div>
       {partial ? (
         <p className="inline-warning">
-          Hay datos hasta el {context.latestDate}. Las barras rayadas muestran acumulados parciales.
-          Los promedios de temperatura y humedad usan los días con datos.
+          {t(
+            "Hay datos hasta el {0}. Las barras rayadas muestran acumulados parciales. Los promedios de temperatura y humedad usan los días con datos.",
+            context.latestDate,
+          )}
         </p>
       ) : null}
       <p className="source-note">
-        Estos datos muestran cómo fue el clima de la zona. La lluvia puede variar dentro de tu
-        parcela; no indican cómo será el clima en los próximos años.
+        {t(
+          "Estos datos muestran cómo fue el clima de la zona. La lluvia puede variar dentro de tu parcela; no indican cómo será el clima en los próximos años.",
+        )}{" "}
       </p>
     </>
   );

@@ -1,3 +1,4 @@
+import { formatLocale, translator, type Locale } from "./i18n.ts";
 import pdfMake from "pdfmake/build/pdfmake.js";
 import fonts from "pdfmake/build/vfs_fonts.js";
 import type { Content, TDocumentDefinitions } from "pdfmake/interfaces";
@@ -8,17 +9,16 @@ import { GOALS } from "./plot-options.ts";
 import type { EvidenceId } from "./types.ts";
 
 type Guide = NonNullable<ReturnType<typeof createAutomaticGuide>>;
-const kg = new Intl.NumberFormat("es-CO", { maximumSignificantDigits: 4 });
 
-function references(ids: EvidenceId[]): Content {
+function references(t: ReturnType<typeof translator>, ids: EvidenceId[]): Content {
   const sources = EVIDENCE.filter((source) => ids.includes(source.id));
   return {
     text: [
-      "Fuentes: ",
+      t("Fuentes: "),
       ...sources.flatMap((source, index) => [
         ...(index ? [" · "] : []),
         {
-          text: source.shortName ?? source.organization,
+          text: t(source.shortName ?? source.organization),
           link: source.url,
           decoration: "underline" as const,
         },
@@ -32,16 +32,18 @@ function heading(text: string): Content {
   return { text, style: "section", headlineLevel: 1 };
 }
 
-export function createPlanPdf(guide: Guide, plotName: string) {
-  const answers = healthAnswerRows(guide);
+export function createPlanPdf(guide: Guide, plotName: string, locale: Locale = "es") {
+  const t = translator(locale);
+  const answers = healthAnswerRows(guide, locale);
+  const kg = new Intl.NumberFormat(formatLocale(locale), { maximumSignificantDigits: 4 });
   const content: Content[] = [
     { text: "SueloVivo · Institución Universitaria del Putumayo", style: "brand" },
     { text: guide.title, style: "title" },
-    ...(plotName ? [{ text: `Parcela: ${plotName}`, style: "intro" }] : []),
+    ...(plotName ? [{ text: t("Parcela: {0}", plotName), style: "intro" }] : []),
     ...(guide.goals.length
       ? [
           {
-            text: `Objetivos: ${guide.goals.map((goal) => GOALS[goal]).join(" · ")}`,
+            text: t("Objetivos: {0}", guide.goals.map((goal) => t(GOALS[goal])).join(" · ")),
             style: "intro",
           },
         ]
@@ -52,7 +54,7 @@ export function createPlanPdf(guide: Guide, plotName: string) {
     content.push({
       unbreakable: true,
       stack: [
-        heading("Observaciones de sanidad"),
+        heading(t("Observaciones de sanidad")),
         ...answers.map(({ label, answer }) => ({
           text: [{ text: `${label}${label.endsWith("?") ? "" : ":"} `, bold: true }, answer],
           style: "answer",
@@ -70,37 +72,40 @@ export function createPlanPdf(guide: Guide, plotName: string) {
           { text: `${index + 1}. ${task.title}`, style: "task" },
           ...(task.basedOn ? [{ text: task.basedOn, style: "basis" }] : []),
           task.reason,
-          references([task.evidence, ...(task.supportingEvidence ?? [])]),
+          references(t, [task.evidence, ...(task.supportingEvidence ?? [])]),
         ],
       });
     }
     content.push({
       unbreakable: true,
       stack: [
-        { text: "Antes de seguir", style: "task" },
+        { text: t("Antes de seguir"), style: "task" },
         stage.checkpoint.reason,
-        references([stage.checkpoint.evidence]),
+        references(t, [stage.checkpoint.evidence]),
       ],
     });
   }
 
   if (guide.doses.lime || guide.doses.fertilizer) {
-    content.push(heading("Cantidades estimadas para revisar con tu técnico"));
+    content.push(heading(t("Cantidades estimadas para revisar con tu técnico")));
     const doses = [
-      { label: "Cal agrícola", value: guide.doses.lime },
-      { label: `Fertilizante · ${guide.nutrient ?? ""}`, value: guide.doses.fertilizer },
+      { label: t("Cal agrícola"), value: guide.doses.lime },
+      { label: t("Fertilizante · {0}", guide.nutrient ?? ""), value: guide.doses.fertilizer },
     ];
     for (const { label, value } of doses) {
       if (!value) continue;
       const total =
-        value.total === null ? "" : ` · ${kg.format(value.total)} kg para el área indicada`;
-      content.push({ text: `${label} · ${kg.format(value.perHa)} kg/ha${total}`, style: "answer" });
+        value.total === null ? "" : t(" · {0} kg para el área indicada", kg.format(value.total));
+      content.push({
+        text: t("{0} · {1} kg/ha{2}", label, kg.format(value.perHa), total),
+        style: "answer",
+      });
     }
-    content.push(references(["inia-suelos"]));
+    content.push(references(t, ["inia-suelos"]));
   }
 
   if (guide.missing.length || guide.warnings.length) {
-    content.push(heading("Datos por confirmar"));
+    content.push(heading(t("Datos por confirmar")));
     if (guide.missing.length) content.push({ ul: guide.missing, margin: [0, 0, 0, 5] });
     for (const warning of guide.warnings) content.push({ text: warning, style: "answer" });
   }
@@ -109,23 +114,23 @@ export function createPlanPdf(guide: Guide, plotName: string) {
     {
       unbreakable: true,
       stack: [
-        heading("De la cosecha de cacao al grano seco"),
-        { ol: HARVEST_STEPS },
-        references(["cosecha"]),
+        heading(t("De la cosecha de cacao al grano seco")),
+        { ol: HARVEST_STEPS.map((step) => t(step)) },
+        references(t, ["cosecha"]),
       ],
     },
     {
       unbreakable: true,
       stack: [
-        { text: "Registrar el origen y las labores", style: "task" },
-        ...HARVEST_RECORDS.map((text) => ({ text, style: "answer" })),
-        references(["trazabilidad"]),
+        { text: t("Registrar el origen y las labores"), style: "task" },
+        ...HARVEST_RECORDS.map((text) => ({ text: t(text), style: "answer" })),
+        references(t, ["trazabilidad"]),
       ],
     },
   );
 
   const document: TDocumentDefinitions = {
-    info: { title: `SueloVivo - ${guide.title}`, author: "SueloVivo Putumayo" },
+    info: { title: t("SueloVivo - {0}", guide.title), author: t("SueloVivo Putumayo") },
     pageSize: "A4",
     pageMargins: [44, 40, 44, 42],
     defaultStyle: { fontSize: 10.5, lineHeight: 1.18, color: "#24312b" },
@@ -141,7 +146,7 @@ export function createPlanPdf(guide: Guide, plotName: string) {
     },
     content,
     footer: (page, pageCount) => ({
-      text: `SueloVivo · ${page} / ${pageCount}`,
+      text: t("SueloVivo · {0} / {1}", page, pageCount),
       alignment: "right",
       color: "#52645a",
       fontSize: 9,

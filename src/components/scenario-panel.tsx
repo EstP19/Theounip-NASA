@@ -1,3 +1,4 @@
+import { useLanguage } from "@/components/i18n-provider";
 import { ArrowUpRight, Check, Sprout } from "lucide-react";
 import { DOSE_SOURCE } from "@/lib/doses";
 import { EVIDENCE } from "@/lib/evidence";
@@ -7,11 +8,12 @@ import type { EvidenceId } from "@/lib/types";
 import { DoseValue } from "./dose-calculator";
 
 function SourceLink({ id }: { id: EvidenceId }) {
+  const { t } = useLanguage();
   const source = EVIDENCE.find((item) => item.id === id);
   if (!source) return null;
   return (
-    <a href={source.url} target="_blank" rel="noreferrer" title={source.section ?? source.title}>
-      {source.shortName ?? source.organization}
+    <a href={source.url} target="_blank" rel="noreferrer" title={t(source.section ?? source.title)}>
+      {t(source.shortName ?? source.organization)}
       <ArrowUpRight size={13} aria-hidden="true" />
     </a>
   );
@@ -24,26 +26,32 @@ export function ScenarioPanel({
   guide: NonNullable<ReturnType<typeof createAutomaticGuide>>;
   plotName: string;
 }) {
-  const answers = healthAnswerRows(guide);
+  const { t, locale } = useLanguage();
+  const answers = healthAnswerRows(guide, locale);
   return (
     <section className="scenario-section" id="escenarios" aria-labelledby="guide-title">
       <section className="panel action-panel farm-guide">
         <div className="section-heading">
           <div>
-            <span className="eyebrow">GUÍA PASO A PASO</span>
+            <span className="eyebrow">{t("GUÍA PASO A PASO")}</span>
             <h2 id="guide-title">{guide.title}</h2>
-            {plotName && <p className="field-help">Parcela: {plotName}</p>}
+            {plotName && (
+              <p className="field-help">
+                {t("Parcela:")} {plotName}
+              </p>
+            )}
           </div>
           <Sprout size={22} aria-hidden="true" />
         </div>
         {guide.goals.length > 0 && (
           <p className="timeline-intro">
-            <strong>Objetivos</strong> · {guide.goals.map((goal) => GOALS[goal]).join(" · ")}
+            <strong>{t("Objetivos")}</strong> ·{" "}
+            {guide.goals.map((goal) => t(GOALS[goal])).join(" · ")}
           </p>
         )}
         {answers.length > 0 && (
           <section className="guide-health-summary" aria-labelledby="guide-health-title">
-            <h3 id="guide-health-title">Observaciones de sanidad</h3>
+            <h3 id="guide-health-title">{t("Observaciones de sanidad")}</h3>
             <dl>
               {answers.map(({ label, answer }) => (
                 <div key={label}>
@@ -79,7 +87,7 @@ export function ScenarioPanel({
                 </ol>
                 <div className="timeline-checkpoint">
                   <strong>
-                    <Check size={14} aria-hidden="true" /> Antes de seguir
+                    <Check size={14} aria-hidden="true" /> {t("Antes de seguir")}{" "}
                   </strong>
                   <p>{stage.checkpoint.reason}</p>
                   <div className="timeline-sources">
@@ -92,19 +100,19 @@ export function ScenarioPanel({
         </div>
         {(guide.doses.lime || guide.doses.fertilizer) && (
           <section className="guide-dose-summary">
-            <h3>Cantidades estimadas para revisar con tu técnico</h3>
-            <DoseValue label="Cal agrícola" value={guide.doses.lime} />
+            <h3>{t("Cantidades estimadas para revisar con tu técnico")}</h3>
+            <DoseValue label={t("Cal agrícola")} value={guide.doses.lime} />
             <DoseValue
-              label={`Fertilizante · ${guide.nutrient ?? ""}`}
+              label={t("Fertilizante · {0}", guide.nutrient ?? "")}
               value={guide.doses.fertilizer}
             />
             <a className="text-button" href={DOSE_SOURCE} target="_blank" rel="noreferrer">
-              Manual INIA, capítulos 9 y 10
+              {t("Manual INIA, capítulos 9 y 10")}{" "}
             </a>
           </section>
         )}
         <div className="guide-notes">
-          <h3>Datos por confirmar</h3>
+          <h3>{t("Datos por confirmar")}</h3>
           {guide.missing.length > 0 && <p>{guide.missing.join(" · ")}</p>}
           {guide.warnings.map((warning) => (
             <p key={warning}>{warning}</p>
