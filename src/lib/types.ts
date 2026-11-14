@@ -72,6 +72,7 @@ export type MonthClimate = {
   month: number;
   label: string;
   rain: number | null;
+  observedRain: number | null;
   temperature: number | null;
   humidity: number | null;
   days: number;
@@ -92,6 +93,7 @@ export type ClimateContext = {
   resolution: string;
   months: MonthClimate[];
   annual: { rain: number | null; temperature: number | null; humidity: number | null };
+  observedRain: { total: number | null; through: string | null };
   coverage: { rain: number; temperature: number; humidity: number; expected: number };
 };
 

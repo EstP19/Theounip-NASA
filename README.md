@@ -38,7 +38,7 @@ Mi ubicación utiliza la geolocalización del navegador bajo HTTPS o localhost. 
 
 ## Datos y reglas
 
-- `GET /api/context?lat=0.343&lon=-76.91&year=2026` consulta T2M, RH2M y PRECTOTCORR de NASA POWER. La consulta del año en curso llega hasta la fecha local de Colombia y la aplicación informa el último día con datos válidos. Solo los meses completos reciben un acumulado de lluvia.
+- `GET /api/context?lat=0.343&lon=-76.91&year=2026` consulta T2M, RH2M y PRECTOTCORR de NASA POWER. El panel muestra la lluvia acumulada de los días disponibles, con su fecha de corte y cobertura. El plan sigue comparando los acumulados de meses completos.
 - Se pueden seleccionar 2023–2026. La ventana de consulta cubre Putumayo y su entorno.
 - El mapa muestra imágenes públicas de NASA GIBS con fecha y escala de colores cuando la fuente la publica. La serie numérica que alimenta el plan es NASA POWER. El apartado «Recursos de NASA Space Apps 2026» de «Fuentes y evidencia» reúne los 26 enlaces revisados y describe su cobertura y su uso.
 - `mode=snapshot` admite 2025 y 2026 para el punto ilustrativo de San Miguel.

@@ -61,6 +61,8 @@ test("un dato faltante de lluvia invalida el acumulado, sin convertirlo en cero"
   const result = aggregatePower(raw, DEMO_POINT, 2025, "live", "2026-11-04");
   assert.equal(result.months[0].rain, null);
   assert.equal(result.annual.rain, null);
+  assert.equal(result.observedRain.total, 728);
+  assert.equal(result.months[0].observedRain, 60);
   assert.equal(result.months[0].validDays.rain, 30);
   assert.equal(result.months[0].temperature, 24);
 });
@@ -70,18 +72,23 @@ test("rechaza respuestas de proveedor con periodo equivocado o formato incomplet
   assert.throws(() => aggregatePower({}, DEMO_POINT, 2025, "live", "now"), /variables/);
 });
 
-test("el año abierto omite acumulados incompletos y muestra el último día válido", () => {
+test("el año abierto calcula acumulados parciales y distingue el corte de lluvia", () => {
   const raw = dailyYear(2026);
   raw.header.end = "20261113";
   for (const values of Object.values(raw.properties.parameter)) {
     values["20261112"] = -999;
     values["20261113"] = -999;
   }
+  raw.properties.parameter.T2M["20261112"] = 24;
+  raw.properties.parameter.PRECTOTCORR["20261111"] = 0;
   const result = aggregatePower(raw, DEMO_POINT, 2026, "live", "2026-11-14", "20261114");
-  assert.equal(result.latestDate, "2026-11-11");
+  assert.equal(result.latestDate, "2026-11-12");
+  assert.deepEqual(result.observedRain, { total: 628, through: "2026-11-11" });
   assert.equal(result.coverage.rain, 315);
   assert.equal(result.months[9].rain, 62);
   assert.equal(result.months[10].rain, null);
+  assert.equal(result.months[10].observedRain, 20);
+  assert.equal(result.months[11].observedRain, null);
   assert.equal(result.months[11].temperature, null);
   assert.equal(result.annual.rain, null);
   assert.match(result.sourceUrl, /end=20261114/);

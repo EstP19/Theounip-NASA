@@ -832,6 +832,12 @@ main {
 .month-bar:hover .bar-fill {
   background: #497748;
 }
+.month-bar.partial-rain .bar-fill {
+  background-image: repeating-linear-gradient(135deg, transparent 0 4px, #497748 4px 6px);
+}
+.month-bar.partial-rain:is(.selected, :hover) .bar-fill {
+  background-color: #c8d5b3;
+}
 .bar-tip {
   display: none;
   position: absolute;
