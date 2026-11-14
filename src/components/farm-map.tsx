@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import * as L from "leaflet";
 import { GIBS_WMS, NASA_MAP_LAYERS } from "@/lib/space-apps";
@@ -22,6 +23,9 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
   const [failedLayer, setFailedLayer] = useState("");
   const initial = useRef(point);
   const selectedLayer = NASA_MAP_LAYERS.find(({ id }) => id === layerId);
+  const legendUrl = selectedLayer?.legend
+    ? `https://gibs.earthdata.nasa.gov/legends/${selectedLayer.legend}`
+    : null;
 
   useEffect(() => {
     changeRef.current = onChange;
@@ -151,23 +155,37 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
             </option>
           ))}
         </select>
-        {selectedLayer ? (
-          <p className="source-note" aria-live="polite">
-            <strong>{selectedLayer.period}.</strong> {selectedLayer.detail}
-            {selectedLayer.legend ? (
-              <>
-                {" "}
-                <a
-                  href={`https://gibs.earthdata.nasa.gov/legends/${selectedLayer.legend}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Ver escala de colores
+        <div className="map-layer-guide" aria-live="polite">
+          {selectedLayer ? (
+            <>
+              <p>
+                <strong>{selectedLayer.period}.</strong> {selectedLayer.detail}
+              </p>
+              <p>
+                <strong>Cómo leer los colores.</strong> {selectedLayer.colors}
+              </p>
+              {legendUrl ? (
+                <a href={legendUrl} target="_blank" rel="noreferrer">
+                  <Image
+                    src={legendUrl}
+                    alt={`Escala oficial de colores de ${selectedLayer.title}`}
+                    width={420}
+                    height={selectedLayer.id === "IMERG_Precipitation_Rate" ? 195 : 95}
+                    unoptimized
+                  />
                 </a>
-              </>
-            ) : null}
-          </p>
-        ) : null}
+              ) : null}
+              <p className="source-note">
+                Si en un sector solo ves el mapa base, puede que allí falten datos para esa fecha.
+              </p>
+            </>
+          ) : (
+            <p className="source-note">
+              El mapa base te ayuda a ubicar la parcela. Elige una capa para ver qué muestran sus
+              colores.
+            </p>
+          )}
+        </div>
         {failedLayer && failedLayer === layerId ? (
           <p className="inline-warning" role="status">
             Parte de la capa no se pudo cargar. El mapa base sigue disponible.

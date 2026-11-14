@@ -550,6 +550,20 @@ main {
 .map-layer-controls .source-note {
   margin: 0;
 }
+.map-layer-guide {
+  display: grid;
+  gap: 6px;
+  color: var(--ink);
+}
+.map-layer-guide p {
+  margin: 0;
+}
+.map-layer-guide img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  background: white;
+}
 .challenge-resources {
   margin-top: 16px;
 }

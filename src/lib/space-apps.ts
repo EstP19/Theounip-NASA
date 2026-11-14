@@ -11,7 +11,11 @@ type MapLayer = {
   legend?: string;
   maxNativeZoom?: number;
   detail: string;
+  colors: string;
 };
+
+const NDVI_COLORS =
+  "Los tonos claros y cafés indican poco verdor. Los verdes, especialmente los más oscuros, indican más verdor. Una zona verde puede incluir cacao, árboles de sombra u otra vegetación.";
 
 // Periodos con imágenes verificadas en el entorno de San Miguel.
 export const NASA_MAP_LAYERS: readonly MapLayer[] = [
@@ -23,6 +27,8 @@ export const NASA_MAP_LAYERS: readonly MapLayer[] = [
     legend: "GPM_Precipitation_Rate_H.png",
     detail:
       "Intensidad estimada de lluvia en mm/h. El mapa muestra un día, y el gráfico usa acumulados de NASA POWER.",
+    colors:
+      "En la escala de lluvia, verde indica menor intensidad, amarillo y naranja indican más lluvia, y rojo oscuro indica la mayor intensidad. El gris claro marca lluvia muy débil y el gris oscuro marca zonas sin datos.",
   },
   {
     id: "SMAP_L4_Analyzed_Root_Zone_Soil_Moisture",
@@ -32,6 +38,8 @@ export const NASA_MAP_LAYERS: readonly MapLayer[] = [
     legend: "SMAP_Analyzed_Soil_Moisture_H.png",
     detail:
       "Estimación regional de agua en el suelo hasta 1 m de profundidad, en una cuadrícula de unos 9 km.",
+    colors:
+      "Naranja y amarillo indican menos humedad. El verde representa niveles intermedios. Celeste y azul indican más humedad. Usa los números de la escala para distinguir valores cercanos.",
   },
   {
     id: "MODIS_Terra_L3_NDVI_Monthly",
@@ -40,6 +48,7 @@ export const NASA_MAP_LAYERS: readonly MapLayer[] = [
     period: "oct 2026",
     legend: "MODIS_L3_NDVI_H.png",
     detail: "El índice de vegetación (NDVI) ayuda a distinguir áreas con más o menos verdor.",
+    colors: NDVI_COLORS,
   },
   {
     id: "VIIRS_SNPP_L3_NDVI_Monthly",
@@ -48,6 +57,7 @@ export const NASA_MAP_LAYERS: readonly MapLayer[] = [
     period: "oct 2026",
     legend: "MODIS_L3_NDVI_H.png",
     detail: "Otra vista mensual del verdor de la zona para comparar patrones regionales.",
+    colors: NDVI_COLORS,
   },
   {
     id: "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
@@ -56,6 +66,8 @@ export const NASA_MAP_LAYERS: readonly MapLayer[] = [
     period: "5 nov 2026",
     maxNativeZoom: 12,
     detail: "Imagen de un paso del satélite. Puede haber nubes o sectores sin imagen ese día.",
+    colors:
+      "La imagen usa colores parecidos a los de una fotografía. El verde suele ser vegetación, los tonos cafés pueden ser suelo expuesto y las manchas blancas pueden ser nubes.",
   },
   {
     id: "GLDAS_Underground_Soil_Moisture_Monthly",
@@ -65,6 +77,8 @@ export const NASA_MAP_LAYERS: readonly MapLayer[] = [
     legend: "GLDAS_Underground_Soil_Moisture_Monthly_H.png",
     detail:
       "Estimación mensual de humedad del suelo entre 0 y 10 cm, en una cuadrícula de unos 28 km.",
+    colors:
+      "Rojos y naranjas indican menos agua en la capa superficial, amarillos y verdes indican niveles intermedios, y azules o morados indican valores más altos. La escala expresa kilogramos de agua por metro cuadrado.",
   },
   {
     id: "SRTM_Color_Index",
@@ -73,6 +87,8 @@ export const NASA_MAP_LAYERS: readonly MapLayer[] = [
     maxNativeZoom: 11,
     legend: "SRTM_Color_Index_H.png",
     detail: "Altitud en metros para reconocer valles y laderas.",
+    colors:
+      "Los verdes indican terrenos más bajos. Los amarillos y cafés representan terrenos más altos. Los grises y blancos corresponden a las mayores altitudes de la escala.",
   },
   {
     id: "GEDI_ISS_L3_Canopy_Height_Mean_RH100_201904-202303",
@@ -81,6 +97,8 @@ export const NASA_MAP_LAYERS: readonly MapLayer[] = [
     legend: "GEDI_RH100_Mean_Color_Index_H.png",
     detail:
       "Altura estimada de la vegetación a partir de un conjunto histórico de mediciones láser.",
+    colors:
+      "Los grises claros y verdes claros indican vegetación más baja. Los verdes oscuros indican vegetación más alta. La escala muestra la altura en metros.",
   },
 ];
 
