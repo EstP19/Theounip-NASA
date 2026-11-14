@@ -541,6 +541,21 @@ main {
 .location-controls {
   padding: 17px 23px 23px;
 }
+.map-layer-controls {
+  display: grid;
+  gap: 6px;
+  margin: 12px 23px 0;
+  font-size: 13px;
+}
+.map-layer-controls .source-note {
+  margin: 0;
+}
+.challenge-resources {
+  margin-top: 16px;
+}
+.challenge-resources li + li {
+  margin-top: 6px;
+}
 .primary-button,
 .secondary-button {
   border: 1px solid transparent;

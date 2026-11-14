@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as L from "leaflet";
+import { GIBS_WMS, NASA_MAP_LAYERS } from "@/lib/space-apps";
 import type { Coordinates } from "@/lib/types";
 
 type Props = {
@@ -17,7 +18,10 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
   const precision = useRef<L.Circle | null>(null);
   const changeRef = useRef(onChange);
   const [tileError, setTileError] = useState(false);
+  const [layerId, setLayerId] = useState("");
+  const [failedLayer, setFailedLayer] = useState("");
   const initial = useRef(point);
+  const selectedLayer = NASA_MAP_LAYERS.find(({ id }) => id === layerId);
 
   useEffect(() => {
     changeRef.current = onChange;
@@ -75,6 +79,25 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
   }, []);
 
   useEffect(() => {
+    if (!map.current || !selectedLayer) return;
+    const overlay = L.tileLayer.wms(GIBS_WMS, {
+      layers: selectedLayer.id,
+      ...(selectedLayer.date ? { time: selectedLayer.date } : {}),
+      format: "image/png",
+      transparent: true,
+      opacity: 0.65,
+      maxNativeZoom: selectedLayer.maxNativeZoom ?? 8,
+      maxZoom: 19,
+      attribution: '<a href="https://www.earthdata.nasa.gov/data/tools/gibs">NASA EOSDIS GIBS</a>',
+    });
+    overlay.on("tileerror", () => setFailedLayer(selectedLayer.id)).addTo(map.current);
+    return () => {
+      overlay.off();
+      overlay.remove();
+    };
+  }, [selectedLayer]);
+
+  useEffect(() => {
     if (!map.current || !marker.current) return;
     const p: L.LatLngExpression = [point.lat, point.lon];
     marker.current.setLatLng(p);
@@ -93,22 +116,64 @@ export default function FarmMap({ point, accuracy, onChange }: Props) {
   }, [point.lat, point.lon, accuracy]);
 
   return (
-    <div className="map-shell">
-      <div
-        className="leaflet-map"
-        ref={container}
-        role="region"
-        aria-label="Mapa de ubicación de la parcela en Putumayo"
-      />
-      <div className="map-label">
-        <span className="map-dot" /> PUTUMAYO, COLOMBIA
-      </div>
-      <div className="map-instruction">Haz clic o arrastra el marcador</div>
-      {tileError ? (
-        <div className="map-error" role="status">
-          El mapa base no está disponible. Puedes ingresar las coordenadas debajo.
+    <>
+      <div className="map-shell">
+        <div
+          className="leaflet-map"
+          ref={container}
+          role="region"
+          aria-label="Mapa de ubicación de la parcela en Putumayo"
+        />
+        <div className="map-label">
+          <span className="map-dot" /> PUTUMAYO, COLOMBIA
         </div>
-      ) : null}
-    </div>
+        <div className="map-instruction">Haz clic o arrastra el marcador</div>
+        {tileError ? (
+          <div className="map-error" role="status">
+            El mapa base no está disponible. Puedes ingresar las coordenadas debajo.
+          </div>
+        ) : null}
+      </div>
+      <div className="map-layer-controls">
+        <label htmlFor="nasa-map-layer">Ver una capa satelital</label>
+        <select
+          id="nasa-map-layer"
+          value={layerId}
+          onChange={(event) => {
+            setFailedLayer("");
+            setLayerId(event.target.value);
+          }}
+        >
+          <option value="">Mapa base</option>
+          {NASA_MAP_LAYERS.map((layer) => (
+            <option key={layer.id} value={layer.id}>
+              {layer.title}
+            </option>
+          ))}
+        </select>
+        {selectedLayer ? (
+          <p className="source-note" aria-live="polite">
+            <strong>{selectedLayer.period}.</strong> {selectedLayer.detail}
+            {selectedLayer.legend ? (
+              <>
+                {" "}
+                <a
+                  href={`https://gibs.earthdata.nasa.gov/legends/${selectedLayer.legend}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Ver escala de colores
+                </a>
+              </>
+            ) : null}
+          </p>
+        ) : null}
+        {failedLayer && failedLayer === layerId ? (
+          <p className="inline-warning" role="status">
+            Parte de la capa no se pudo cargar. El mapa base sigue disponible.
+          </p>
+        ) : null}
+      </div>
+    </>
   );
 }

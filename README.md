@@ -32,15 +32,16 @@ La aplicación tiene cuatro pantallas con direcciones propias. El layout compart
 3. `/manejo` — Vista previa edafoclimática, análisis de laboratorio, calculadora y objetivos. Al marcar sanidad en una parcela con cacao, aparecen las preguntas sobre lo observado.
 4. `/resultados` — Guía paso a paso según los objetivos y el estado de la parcela, fichas de cosecha, guardado, descarga directa en PDF, exportación en JSON e impresión.
 
-El caso inicial de San Miguel es ilustrativo; su clima es una descarga real de NASA POWER para `0.343, -76.91`, año 2025. Un cambio de ubicación invalida ese contexto. Las respuestas se conservan automáticamente durante la sesión de esa pestaña, incluso al recargar. Al recuperar un punto propio se vuelve a consultar el clima; el guardado manual permite conservar un escenario para otra sesión.
+El caso inicial de San Miguel es ilustrativo. Carga una descarga real de NASA POWER para `0.343, -76.91` con 315 días válidos de 2026 hasta el 11 de noviembre. Un cambio de ubicación invalida ese contexto. Las respuestas se conservan durante la sesión de la pestaña. Al recuperar un punto propio se vuelve a consultar el clima.
 
 Mi ubicación utiliza la geolocalización del navegador bajo HTTPS o localhost. El usuario autoriza su ubicación; si la deniega o está fuera de la zona piloto, puede continuar manualmente. La posición corresponde al dispositivo, no a los linderos de la parcela.
 
 ## Datos y reglas
 
-- `GET /api/context?lat=0.343&lon=-76.91&year=2025`: consulta T2M, RH2M y PRECTOTCORR de NASA POWER, con tiempo de espera de 25 segundos y caché de hasta 24 horas.
-- Años disponibles: 2023, 2024 y 2025. La ventana geográfica limita la demo a Putumayo y su entorno; no es una delimitación administrativa.
-- `mode=snapshot` solo admite el punto de respaldo y año 2025. No se reutilizan sus valores para otro punto.
+- `GET /api/context?lat=0.343&lon=-76.91&year=2026` consulta T2M, RH2M y PRECTOTCORR de NASA POWER. La consulta del año en curso llega hasta la fecha local de Colombia y la aplicación informa el último día con datos válidos. Solo los meses completos reciben un acumulado de lluvia.
+- Se pueden seleccionar 2023–2026. La ventana de consulta cubre Putumayo y su entorno.
+- El mapa muestra imágenes públicas de NASA GIBS con fecha y escala de colores cuando la fuente la publica. La serie numérica que alimenta el plan es NASA POWER. El apartado «Recursos de NASA Space Apps 2026» de «Fuentes y evidencia» reúne los 26 enlaces revisados y describe su cobertura y su uso.
+- `mode=snapshot` admite 2025 y 2026 para el punto ilustrativo de San Miguel.
 - La lluvia diaria se suma por mes; temperatura y humedad se promedian sobre días válidos. Se conservan contadores de cobertura. Un acumulado de lluvia incompleto se muestra como faltante.
 - La fuente es meteorología regional de reanálisis; no una medición bajo el dosel. Los meses más lluviosos de la serie orientan el calendario de observación; no predicen infección ni clima futuro.
 - `GET /api/soil?lat=1.018051&lon=-76.61286`: obtiene pH y carbono orgánico de SoilGrids 2.0 (ISRIC), profundidad **5–15 cm**, resolución nativa **250 m**. La consulta se inicia automáticamente al marcar un lugar y se cancela al cambiarlo. Los datos de otro punto no se reutilizan.
@@ -55,7 +56,7 @@ Mi ubicación utiliza la geolocalización del navegador bajo HTTPS o localhost. 
 ## Estructura
 
 ```text
-data/power-san-miguel-2025.json  Respuesta NASA original con fecha de descarga
+data/power-san-miguel-*.json     Respuestas NASA para San Miguel con fecha de descarga
 src/app/                       Página, estilos y rutas API
 src/components/                Mapa, formularios, gráfico y escenarios
 src/lib/                       Tipos, validación, datos, evidencia y reglas

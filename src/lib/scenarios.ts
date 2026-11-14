@@ -170,13 +170,13 @@ export function evaluateScenarios(
     .slice(0, 3);
   const calendarAction: PlanAction = {
     basedOn: wettest?.length
-      ? `Lluvia histórica de NASA POWER para ${climate!.year}. Sirve de referencia regional.`
+      ? `Registro regional de NASA POWER de ${climate!.year}, con datos hasta el ${climate!.latestDate}.`
       : undefined,
     title: climate
       ? `Preparar vigilancia con el registro de ${climate.year}`
       : "Consultar el contexto climático",
     reason: wettest?.length
-      ? `${wettest.map((m) => m.label).join(", ")} tuvieron los mayores acumulados mensuales en la serie NASA consultada. Usar este antecedente para organizar inspecciones de drenaje y frutos; no es un pronóstico ni confirma enfermedad.`
+      ? `${wettest.map((m) => m.label).join(", ")} tuvieron los mayores acumulados entre los meses completos de la serie NASA consultada. Usa este registro para organizar inspecciones de drenaje y frutos. El registro no es un pronóstico ni confirma enfermedad.`
       : "Falta una serie climática utilizable para esta ubicación. El plan conserva las observaciones del lote, sin sustituir datos de otro sitio.",
     evidence: "power",
     pending: !wettest?.length,

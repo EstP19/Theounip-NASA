@@ -35,6 +35,8 @@ import {
   parseCoordinates,
 } from "@/lib/validation";
 import { EVIDENCE, SPECIES } from "@/lib/evidence";
+import { CLIMATE_YEARS, DEMO_CLIMATE_YEAR } from "@/lib/climate";
+import { CHALLENGE_RESOURCES, SPACE_APPS_CHALLENGE } from "@/lib/space-apps";
 import { createAutomaticGuide, farmForPlan, shouldAskHealthQuestions } from "@/lib/guide";
 import { SYSTEMS, TERRAIN } from "@/lib/plot-options";
 import { ClimateChart } from "./climate-chart";
@@ -114,7 +116,7 @@ export function Workspace({
   const [latText, setLatText] = useState(String(DEMO_POINT.lat));
   const [lonText, setLonText] = useState(String(DEMO_POINT.lon));
   const [accuracy, setAccuracy] = useState<number | null>(null);
-  const [year, setYear] = useState(2025);
+  const [year, setYear] = useState(DEMO_CLIMATE_YEAR);
   const [context, setContext] = useState<ClimateContext | null>(initialContext);
   const [farm, setFarm] = useState<FarmInput>({ ...DEFAULT_FARM, species: [] });
   const [loading, setLoading] = useState(false);
@@ -148,14 +150,15 @@ export function Workspace({
         draft?.version === 2 &&
         isFarmInput(draft.farm) &&
         restoredPoint &&
-        [2023, 2024, 2025].includes(draft.year)
+        CLIMATE_YEARS.includes(draft.year)
       ) {
         setFarm(draft.farm);
         setPoint(restoredPoint);
         setLatText(String(restoredPoint.lat));
         setLonText(String(restoredPoint.lon));
         setYear(draft.year);
-        if (!samePoint(restoredPoint, DEMO_POINT) || draft.year !== 2025) setContext(null);
+        if (!samePoint(restoredPoint, DEMO_POINT) || draft.year !== DEMO_CLIMATE_YEAR)
+          setContext(null);
       }
     } catch {
       /* El almacenamiento es opcional. */
@@ -243,10 +246,12 @@ export function Workspace({
 
   function loadDemo() {
     selectPoint(DEMO_POINT);
-    setYear(2025);
+    setYear(DEMO_CLIMATE_YEAR);
     setContext(initialContext);
     setFarm({ ...DEFAULT_FARM, species: [] });
-    notify("Caso ilustrativo de San Miguel cargado. El clima de 2025 proviene de NASA POWER.");
+    notify(
+      `Caso ilustrativo de San Miguel cargado con datos de NASA POWER de ${DEMO_CLIMATE_YEAR}.`,
+    );
   }
 
   function applyCoordinates() {
@@ -304,6 +309,7 @@ export function Workspace({
       setError("Marca una ubicación en Putumayo y su entorno para consultar datos.");
       return;
     }
+    if (soilContext.error) soilContext.retry();
     controller.current?.abort();
     const current = new AbortController();
     controller.current = current;
@@ -361,13 +367,14 @@ export function Workspace({
         saved?.version !== 1 ||
         !isFarmInput(saved.farm) ||
         !restoredPoint ||
-        ![2023, 2024, 2025].includes(saved.year)
+        !CLIMATE_YEARS.includes(saved.year)
       )
         throw new Error("Invalid draft");
       selectPoint(restoredPoint);
       setFarm(saved.farm);
       setYear(saved.year);
-      if (samePoint(restoredPoint, DEMO_POINT) && saved.year === 2025) setContext(initialContext);
+      if (samePoint(restoredPoint, DEMO_POINT) && saved.year === DEMO_CLIMATE_YEAR)
+        setContext(initialContext);
       notify("Escenario restaurado. Confirma o consulta el contexto de esta ubicación.");
     } catch {
       notify("El escenario guardado no es válido. Puedes empezar con el caso ilustrativo.");
@@ -645,9 +652,11 @@ export function Workspace({
                         setYear(Number(e.target.value));
                       }}
                     >
-                      <option value="2025">Año 2025</option>
-                      <option value="2024">Año 2024</option>
-                      <option value="2023">Año 2023</option>
+                      {CLIMATE_YEARS.map((option) => (
+                        <option key={option} value={option}>
+                          Año {option}
+                        </option>
+                      ))}
                     </select>
                     <button
                       className="primary-button"
@@ -659,7 +668,7 @@ export function Workspace({
                       ) : (
                         <Satellite size={16} />
                       )}
-                      {loading ? "Buscando datos…" : "Conocer el clima"}
+                      {loading ? "Buscando datos…" : "Conocer los datos de tu ubicación"}
                     </button>
                   </div>
                   {error ? (
@@ -672,7 +681,7 @@ export function Workspace({
                   ) : null}
                 </div>
               </section>
-              <h2 className="environment-heading">Factores edafoclimáticos de la parcela</h2>
+              <h2 className="environment-heading">Factores del clima y el suelo de tu parcela</h2>
               <div className="wizard-grid environmental-panels">
                 <section className="panel climate-panel" aria-busy={loading}>
                   <div className="section-heading">
@@ -708,8 +717,12 @@ export function Workspace({
                             </dd>
                           </div>
                           <div>
-                            <dt>Periodo</dt>
-                            <dd>01 ene – 31 dic {context.year}</dd>
+                            <dt>Inicio de la serie</dt>
+                            <dd>1 de enero de {context.year}</dd>
+                          </div>
+                          <div>
+                            <dt>Último día con datos</dt>
+                            <dd>{context.latestDate}</dd>
                           </div>
                           <div>
                             <dt>Resolución</dt>
@@ -762,7 +775,7 @@ export function Workspace({
                       </h3>
                       <p>
                         {loading
-                          ? "Estamos solicitando la serie anual a NASA POWER. Puedes seguir describiendo tu parcela."
+                          ? "Estamos consultando los datos de NASA POWER. Puedes seguir describiendo tu parcela."
                           : "Confirma tu ubicación y pulsa Conocer el clima para cargar el clima de este punto."}
                       </p>
                       {loading ? (
@@ -1078,6 +1091,25 @@ export function Workspace({
             </article>
           ))}
         </div>
+        <details className="challenge-resources">
+          <summary>Recursos de NASA Space Apps 2026</summary>
+          <p>
+            <a href={SPACE_APPS_CHALLENGE} target="_blank" rel="noreferrer">
+              Abrir la lista oficial del reto <ArrowUpRight size={14} />
+            </a>
+          </p>
+          <ul>
+            {CHALLENGE_RESOURCES.map((resource) => (
+              <li key={resource.name}>
+                <a href={resource.url} target="_blank" rel="noreferrer">
+                  {resource.name}
+                </a>
+                {" · "}
+                {resource.usage}
+              </li>
+            ))}
+          </ul>
+        </details>
         <h3 className="species-dialog-title">Catálogo de especies candidatas</h3>
         <div className="species-list">
           {SPECIES.map((s) => (

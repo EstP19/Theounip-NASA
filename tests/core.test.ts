@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { aggregatePower } from "../src/lib/climate.ts";
+import { aggregatePower, powerEndDate } from "../src/lib/climate.ts";
 import { evaluateScenarios } from "../src/lib/scenarios.ts";
 import { EVIDENCE } from "../src/lib/evidence.ts";
 import {
@@ -68,6 +68,29 @@ test("un dato faltante de lluvia invalida el acumulado, sin convertirlo en cero"
 test("rechaza respuestas de proveedor con periodo equivocado o formato incompleto", () => {
   assert.throws(() => aggregatePower(dailyYear(2024), DEMO_POINT, 2025, "live", "now"), /periodo/);
   assert.throws(() => aggregatePower({}, DEMO_POINT, 2025, "live", "now"), /variables/);
+});
+
+test("el año abierto omite acumulados incompletos y muestra el último día válido", () => {
+  const raw = dailyYear(2026);
+  raw.header.end = "20261113";
+  for (const values of Object.values(raw.properties.parameter)) {
+    values["20261112"] = -999;
+    values["20261113"] = -999;
+  }
+  const result = aggregatePower(raw, DEMO_POINT, 2026, "live", "2026-11-14", "20261114");
+  assert.equal(result.latestDate, "2026-11-11");
+  assert.equal(result.coverage.rain, 315);
+  assert.equal(result.months[9].rain, 62);
+  assert.equal(result.months[10].rain, null);
+  assert.equal(result.months[11].temperature, null);
+  assert.equal(result.annual.rain, null);
+  assert.match(result.sourceUrl, /end=20261114/);
+});
+
+test("la consulta corta el año abierto en la fecha de Colombia", () => {
+  const now = new Date("2026-11-15T02:00:00Z");
+  assert.equal(powerEndDate(2026, now), "20261114");
+  assert.equal(powerEndDate(2025, now), "20251231");
 });
 
 test("rechaza coordenadas vacías, infinitas y fuera de rango, y acepta longitud negativa", () => {
@@ -155,9 +178,11 @@ test("las tres rutas usan la cobertura declarada y anteponen el drenaje si queda
   assert.match(wet[0].stages[0].checkpoint.reason, /próxima visita/);
   assert.match(wet[1].stages[0].checkpoint.reason, /antes de agregar plantas/);
   assert.match(wet[2].stages[0].checkpoint.reason, /antes de sembrar/);
-  assert.ok(wet.every(({ stages }) =>
-    stages.every(({ checkpoint }) => EVIDENCE.some(({ id }) => id === checkpoint.evidence)),
-  ));
+  assert.ok(
+    wet.every(({ stages }) =>
+      stages.every(({ checkpoint }) => EVIDENCE.some(({ id }) => id === checkpoint.evidence)),
+    ),
+  );
 });
 
 test("las tres tarjetas comparan acciones concretas y citan fuentes según el lote", () => {
@@ -188,7 +213,10 @@ test("las tres tarjetas comparan acciones concretas y citan fuentes según el lo
   assert.equal(new Set(water).size, 3);
   assert.ok(water.every((text) => text.includes("charcos")));
   for (const { effects } of [current, agroforestry, recovery]) {
-    assert.deepEqual(effects.map(({ title }) => title), ["Suelo", "Agua", "Cuidado del cultivo"]);
+    assert.deepEqual(
+      effects.map(({ title }) => title),
+      ["Suelo", "Agua", "Cuidado del cultivo"],
+    );
     assert.ok(effects.every((effect) => EVIDENCE.some((source) => source.id === effect.evidence)));
   }
 

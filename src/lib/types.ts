@@ -85,6 +85,7 @@ export type ClimateContext = {
   source: string;
   sourceUrl: string;
   retrievedAt: string;
+  latestDate: string;
   apiVersion: string;
   sources: string[];
   timeStandard: string;

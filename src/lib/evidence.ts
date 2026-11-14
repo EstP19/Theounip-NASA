@@ -122,7 +122,7 @@ export const EVIDENCE: Evidence[] = [
     title: "Datos meteorológicos NASA POWER",
     organization: "NASA Langley Research Center",
     detail:
-      "T2M, RH2M y PRECTOTCORR describen contexto regional derivado de reanálisis. Una serie anual histórica no es un pronóstico ni una medición bajo el dosel del cacao.",
+      "T2M, RH2M y PRECTOTCORR describen la temperatura del aire, la humedad relativa y la lluvia de la zona. La serie indica su fecha de corte y emplea datos meteorológicos regionales.",
     url: "https://power.larc.nasa.gov/docs/methodology/data/sources_meteorology/",
   },
 ];

@@ -27,9 +27,15 @@ export function ClimateChart({ context }: { context: ClimateContext }) {
           <span className="metric-icon blue">
             <CloudRain size={18} />
           </span>
-          <span className="metric-label">Lluvia en el año</span>
+          <span className="metric-label">Lluvia anual</span>
           <strong>
-            {number(context.annual.rain)} <small>mm / año</small>
+            {context.annual.rain === null ? (
+              "Año incompleto"
+            ) : (
+              <>
+                {number(context.annual.rain)} <small>mm / año</small>
+              </>
+            )}
           </strong>
         </div>
         <div>
@@ -110,7 +116,7 @@ export function ClimateChart({ context }: { context: ClimateContext }) {
             <Info size={15} />
             <span>
               {wettest
-                ? `${wettest.label} fue el mes más lluvioso de esta serie. Selecciona una barra para explorar.`
+                ? `${wettest.label} tuvo más lluvia entre los meses completos. Selecciona una barra para explorar.`
                 : "No hay acumulados mensuales completos disponibles."}
             </span>
           </>
@@ -118,8 +124,8 @@ export function ClimateChart({ context }: { context: ClimateContext }) {
       </div>
       {partial ? (
         <p className="inline-warning">
-          Serie incompleta. Los acumulados de lluvia faltantes se muestran sin dato; las medias usan
-          los días válidos.
+          Hay datos hasta el {context.latestDate}. El gráfico muestra la lluvia de los meses
+          completos. Los promedios de temperatura y humedad usan los días con datos.
         </p>
       ) : null}
       <p className="source-note">
